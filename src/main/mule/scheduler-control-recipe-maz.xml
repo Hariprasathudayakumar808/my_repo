@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule
+    xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+    xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+    xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+    xmlns="http://www.mulesoft.org/schema/mule/core"
+    xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+    <flow
+        name="scheduler-control-recipe-mazFlow"
+        doc:id="484bf8ce-32d7-41bb-9ebc-6157b38e3f09">
+        <scheduler
+            doc:name="Scheduler Start"
+            doc:id="0d36063f-f7c6-47de-be02-57f2befb7d57">
+            <scheduling-strategy>
+                <cron expression="0 */30 * ? * *" />
+            </scheduling-strategy>
+        </scheduler>
+        <logger
+            level="INFO"
+            doc:name="Logger Start"
+            doc:id="8c3ef024-935a-4991-a9a2-6a3eb5cd99f6"
+            message="Scheduler - Control Recipe MAZ - Starting :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: Scheduler Control Recipe Maz"/>
+        <set-variable
+            value="controlrecipedownload"
+            doc:name="override service to controlrecipedownload (service)"
+            doc:id="18c222de-e449-4abe-a43c-7cc52f74889f"
+            variableName="service" />
+        <set-variable
+            value='erp.maz'
+            doc:name="Target ERP Value (targetErpPropertyValue)"
+            doc:id="6600ccd5-6b70-4c19-b3fa-8bed0926947a"
+            variableName="targetErpPropertyValue" />
+        <set-variable
+            value='#[vars.targetErpPropertyValue ++ ".services." ++ (vars.service default "")]'
+            doc:name="Target ERP Service Property (targetErpServiceProperty)"
+            doc:id="0c06ea2c-1983-4fb2-b6c5-12b42e22b1fa"
+            variableName="targetErpServiceProperty" />
+        <flow-ref
+            doc:name="Call MesToErp"
+            doc:id="edd66547-5964-4e3b-a3e1-d90f5c558044"
+            name="mesToErp"
+            targetValue="#[payload]" />
+        <set-variable
+            value="#[output application/java
+var crs = payload.ZPAIMF_DOWNLOAD_CR.export.PRODUCTION_ORDER_RESPONSE.*row
+---
+sizeOf(crs default '')]"
+            doc:name="Set Variable CRCount"
+            doc:id="7313ed7a-f155-41df-be90-2527455f6457"
+            variableName="CRCount" />
+        <logger
+            level="INFO"
+            doc:name="Logger CR Count"
+            doc:id="20e075a7-0280-4d19-a207-c37e565b5aeb"
+            message="Scheduler - Control Recipe MAZ - CR Count: #[vars.CRCount] :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: Scheduler Control Recipe Maz" />
+        <choice
+            doc:name="Choice"
+            doc:id="246562c4-495c-4811-bf65-a7575c7eff02">
+            <when expression="#[vars.CRCount&gt;0]">
+                <ee:transform
+                    doc:name="Initializing aggregated results"
+                    doc:id="d6be1278-ab3c-4c37-b8a8-78dcf68eeaf8">
+                    <ee:message>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="aggregateResults"><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+                <foreach
+                    doc:name="For Each Control Recipe"
+                    doc:id="59ee94ba-2d96-42ca-ab8e-71060884e39d"
+                    collection="#[payload['ZPAIMF_DOWNLOAD_CR']['export']['PRODUCTION_ORDER_RESPONSE']]">
+                    <try
+                        doc:name="Try"
+                        doc:id="8ff73cd3-2669-47c7-8ce1-ea23335233ad">
+                        <set-variable
+                            value="#[output application/java
+---
+lower(payload['row']['PLANT'] as String)]"
+                            doc:name="Set plantCode of Control recipe"
+                            doc:id="7e842cf6-8672-4b6e-9049-c49fdc7f0a3b"
+                            variableName="plantCode" />
+                        <set-variable
+                            value="#[output application/java
+---
+payload['row']['PR_OR_NUMBER'] as String]"
+                            doc:name="Set Variable prOrNumber of Control recipe"
+                            doc:id="bf064d9d-6107-4169-b890-81eec949cd4a"
+                            variableName="prOrNumber" />
+                        <logger
+                            level="INFO"
+                            doc:name="Logger Start Sending CR"
+                            doc:id="ee997b25-f3f4-4a50-bf03-5cd4e5662966"
+                            message="Sending CR with prOrNumber #[vars.prOrNumber] to plant #[vars.plantcode] :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: Scheduler Control Recipe Maz" />
+                        <validation:is-true
+                            doc:name="Plant code not found on properties"
+                            doc:id="72021355-7287-4554-9060-bad14012dfb5"
+                            message="Plant code not found"
+                            expression="#[not isEmpty(p('mes_' ++ (vars.plantCode default '') ++ '.domain'))]">
+                            <error-mapping targetType="APP:PLANT_CODE_NOT_FOUND" />
+                        </validation:is-true>
+                        <set-variable
+                            value="#['mes_' ++ (vars.plantCode default &quot;&quot;)]"
+                            doc:name="mesPropName"
+                            doc:id="8fd7d46e-999a-4437-8143-9cac426c6e43"
+                            variableName="mesPropName" />
+                        <set-variable
+                            value='#[p(vars.targetErpServiceProperty ++ ".transform_response_file" )++ ".dwl"]'
+                            doc:name="Override the transformFileName as transformFileNameResponse"
+                            doc:id="2bd1f25d-010b-44ef-a5ff-9b52d5e20244"
+                            variableName="transformFileName" />
+                        <flow-ref
+                            doc:name="Call ErpToMes"
+                            doc:id="25e83c87-c4bf-4d2c-93cc-d923c80abb88"
+                            name="erpToMes"
+                            targetValue="#[payload]" />
+                        <validation:is-true
+                            doc:name="Validate payload from mes is true"
+                            doc:id="e7f1a959-67a6-4cd1-a47e-7f64dc9f9a0e"
+                            expression="#[contains([1,-1,0], payload)]"
+                            message="Invalid response code from Traksys">
+                            <error-mapping
+                                targetType="APP:SCHEDULE_CR_MAZ_INVALID_TRAK_RESPONSE" />
+                        </validation:is-true>
+                        <ee:transform
+                            doc:name="Aggregating results"
+                            doc:id="49b22a8f-032a-49c8-a21b-c37b96f242c0">
+                            <ee:message>
+                            </ee:message>
+                            <ee:variables>
+                                <ee:set-variable variableName="aggregateResults"><![CDATA[%dw 2.0
+output application/java
+---
+vars.aggregateResults + vars.prOrNumber
+]]></ee:set-variable>
+                            </ee:variables>
+                        </ee:transform>
+                        <logger
+                            level="INFO"
+                            doc:name="Logger Aggregating results"
+                            doc:id="ffcca96f-f82b-43a7-b19c-053586ae9491"
+                            message="Aggregating PrOrNumber #[vars.prOrNumber] :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: Scheduler Control Recipe Maz" />
+                        <error-handler>
+                            <on-error-continue
+                                enableNotifications="true"
+                                logException="true"
+                                doc:name="On Error Continue"
+                                doc:id="cd4327e1-d6b4-4dd2-b792-d58b078f475c">
+                                <logger
+                                    level="INFO"
+                                    doc:name="Logger"
+                                    doc:id="1d1d1e8b-5637-4e60-9905-7df7a8a29ed9"
+                                    message="Scheduler async Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Error Try Catch: #[error.description] " />
+                            </on-error-continue>
+                        </error-handler>
+                    </try>
+                </foreach>
+                <validation:is-not-empty-collection
+                    doc:name="Is not empty collection of PrOrNumbers"
+                    doc:id="d3f10813-4f59-461b-8172-2e4086c39ebd"
+                    values="#[vars.aggregateResults]"
+                    message="PrOrNumber list is empty - errors must have happened when sending to Traksys">
+                    <error-mapping targetType="APP:SCHEDULE_CR_MAZ_LIST_EMPTY" />
+                </validation:is-not-empty-collection>
+                <logger
+                    level="INFO"
+                    doc:name="Logger PrOrNumbers to send to sap"
+                    doc:id="3eec9566-416f-4a5f-8bc6-407796e31abb"
+                    message="PrOrNumbers to send to sap: #[vars.aggregateResults] :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: Scheduler Control Recipe Maz" />
+                <set-variable
+                    value="controlrecipecheck"
+                    doc:name="override service to controlrecipecheck (service)"
+                    doc:id="68c72cdc-040f-4151-8cf9-612694e8fb94"
+                    variableName="service" />
+                <set-variable
+                    value='#[vars.targetErpPropertyValue ++ ".services." ++ (vars.service default "")]'
+                    doc:name="Target ERP Service Property (targetErpServiceProperty)"
+                    doc:id="13a41933-7e23-4659-a3c2-be09f9fa11b4"
+                    variableName="targetErpServiceProperty" />
+                <flow-ref
+                    doc:name="Call MesToErp"
+                    doc:id="ec36f35e-72b6-422e-ad4a-d59d43cc66bd"
+                    name="mesToErp"
+                    targetValue="#[payload]" />
+            </when>
+            <otherwise>
+                <logger
+                    level="INFO"
+                    doc:name="Logger No CRs"
+                    doc:id="99f3ef2e-3507-44a1-a725-979c598b00ef"
+                    message="Scheduler - Control Recipe MAZ - No CRs ready in SAP :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: Scheduler Control Recipe Maz" />
+            </otherwise>
+        </choice>
+        <logger
+            level="INFO"
+            doc:name="Logger Finish"
+            doc:id="ca00fc47-7a2d-4fb0-bcb8-28233d082432"
+            message="Scheduler - Control Recipe MAZ - Finished :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: Scheduler Control Recipe Maz" />
+    </flow>
+</mule>

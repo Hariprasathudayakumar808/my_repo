@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+    <sub-flow name="initialFlow" doc:id="15ad9790-6bfc-4ccf-8a92-81c3f997deec" >
+		<logger level="INFO" doc:name="Flow Entry Logger" doc:id="5edd4cdc-7821-4316-8616-87b1746b68a4" message='Flow Begin Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service: #[vars.service] ' />
+		<flow-ref doc:name="Plant Code Validation (plantCodeValidation)" doc:id="914213e2-f02a-4bc0-8722-15448ecd4b93" name="plantCodeValidation" target="plantCode" />
+		<set-variable value="#['mes_' ++ vars.plantCode as String]" doc:name="MES Property Name (mesPropName)" doc:id="8fd775db-797f-4b1d-90d6-0e0936560636" variableName="mesPropName" />
+		<set-variable value='#[p("paths." ++ (vars.service default "") ++ ".from") == "erp"]' doc:name="Is ERP?" doc:id="05a2babf-e42b-4a93-82a9-67dd527b96c4" variableName="isErp" />
+		<set-variable doc:name="Header Token Property (authPropertyName)" doc:id="fa598ae2-bbe1-4b1e-b9aa-1b97e29f6c19" variableName="authPropertyName" value="#[if(vars.isErp)  &quot;erp.&quot; ++ p(vars.mesPropName default &quot;&quot; ++ &quot;.target_erp&quot;) ++ &quot;.mule_auth_token&quot; else  vars.mesPropName default &quot;&quot; ++ &quot;.mule_auth_token&quot;]" />
+		<flow-ref doc:name="Auth Token Validation (authorizationValidation)" doc:id="64e1c59b-4830-4e89-8837-ccf26fca5463" name="authorizationValidation" />
+		<flow-ref doc:name="Call Target (callTarget)" doc:id="dbe3d6e5-2547-4d91-bbab-ed878186c829" name="callTarget" />
+	</sub-flow>
+    <sub-flow name="callTarget" doc:id="648bd7f7-5ce9-4569-a1f4-b8d7aa004f75">
+        <set-variable value="#[p(&quot;log_payload&quot;) == &quot;true&quot;]" doc:name="Log Payload?" doc:id="1ce93c43-d56c-44ca-94f7-d06e7f86257a" variableName="logPayload" />
+        <logger level="DEBUG" doc:name="Request Payload Logger" doc:id="0ef07869-290f-40ab-b3c8-f8a46442fffa" message="Request Payload Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Request Payload: #[payload]" category="com.abi.traksys.erp.integration.logging.request.payload" />
+        <set-variable value="#[p(&quot;paths.&quot; ++ (vars.service default &quot;&quot;)    ++ &quot;.transform_file&quot;) ++ &quot;.dwl&quot;]" doc:name="Transform File Name (transformFileName)" doc:id="add5a355-3ea2-4bb4-ab79-f77e4edb98e0" variableName="transformFileName" />
+        <set-variable value="#[p(&quot;paths.&quot; ++ (vars.service default &quot;&quot;)    ++ &quot;.transform_response_file&quot;) ++ &quot;.dwl&quot;]" doc:name="Transform Response File Name (transformResponseFileName)" doc:id="9c60a939-e6f8-4d45-a6ae-747b274f4f2c" variableName="transformResponseFileName" />
+        <set-variable value="#[&quot;erp.&quot; ++ p((vars.mesPropName as String) ++ &quot;.target_erp&quot;)]" doc:name="Target ERP Value (targetErpPropertyValue)" doc:id="fe8ec13c-de7e-4c9e-b3ca-1f4c87d7cfda" variableName="targetErpPropertyValue" />
+        <set-variable value='#[p((vars.mesPropName as String) ++ ".target_erp")]' doc:name="Target ERP (targetErp)" doc:id="7cc8a657-1189-40bb-8d6a-55089e45c305" variableName="targetErp"/>
+		<set-variable value="#[vars.targetErpPropertyValue  default &quot;&quot; ++ &quot;.services.&quot; ++ (vars.service default &quot;&quot;)]" doc:name="Target ERP Service Property (targetErpServiceProperty)" doc:id="699fa044-92ba-4528-bae3-3b0b3a2d68e7" variableName="targetErpServiceProperty" />
+        <choice doc:name="Verify is ERP" doc:id="ec37abce-5bdf-4c76-905a-fe702b31130f">
+            <when expression="#[vars.isErp]">
+                <flow-ref doc:name="Call MES (erpToMes)" doc:id="96b2cba8-1cfd-452d-ba87-b23f161f0860" name="erpToMes" />
+            </when>
+            <when expression="#[vars.service == 'getcontrolrecipedownload']">
+                <flow-ref doc:name="call MesToErp and ErpToMes (execMesToErpAndErpToMes)" doc:id="b67111cf-4130-451c-8725-4d4ae372a637" name="execMesToErpAndErpToMes" />
+            </when>
+            <otherwise>
+                <set-variable value="#[output application/java  --- if(isEmpty(payload['ProductionOrderRequests']['ProductionOrderRequest']['MESKey'])) null else payload['ProductionOrderRequests']['ProductionOrderRequest']['MESKey']]" doc:name="Mes Key (mesKey)" doc:id="53f934e9-54ca-42c0-988c-e1434ecba969" variableName="mesKey" mimeType="application/java" />
+                <flow-ref doc:name="Call ERP (mesToERP)" doc:id="56f802cf-1850-4642-936b-ab4b9e23fa61" name="mesToErp" />
+            </otherwise>
+        </choice>
+        <choice doc:name="Verify  call additional flow" doc:id="2db7519f-5790-498e-8afe-aac3c71c4c7d">
+            <when doc:id="b1c36d22-3f51-41ef-95af-44d66c185cc5" expression="#[isEmpty(p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.additional_flow&quot;)) == false]">
+                <flow-ref doc:name="Call additional flow mapped on properties" doc:id="f72b9718-9f7c-4ed2-a3af-cface6e8cb66" name="#[p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.additional_flow&quot;)]" />
+                <logger level="INFO" doc:name="Call additional flow" doc:id="43cf82fb-0128-44b4-a38b-e14edc1efe27" message="Additional flow  Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Call additional flow" category="com.abi.traksys.erp.integration.logging.call.additional.flow" />
+            </when>
+            <otherwise>
+                <logger level="INFO" doc:name="Do not call additional flow" doc:id="634242ad-be95-4d1d-9bb2-8ddb1556c072" message="Additional flow Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Do not call additional flow" category="com.abi.traksys.erp.integration.logging.dont.call.additional.flow" />
+            </otherwise>
+        </choice>
+        <file:read doc:name="Read Module (TransformResponseModule)" doc:id="4c14d19b-d8a6-4aed-9ba3-c241fdcd8603" target="transformResponseModule" path="#[&quot;modules/&quot; ++ vars.transformResponseFileName]" config-ref="Module_Config">
+            <ee:repeatable-file-store-stream bufferUnit="MB" />
+        </file:read>
+        <logger level="DEBUG" doc:name="Transform Response Module Logger" doc:id="805d0c86-e72a-41c6-85ec-b95cba0e1707" message="Transform Response Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Transform Module Content &gt;&gt; #[vars.transformResponseModule]" category="com.abi.traksys.erp.integration.logging.transform.response.content" />
+        <ee:dynamic-evaluate doc:name="Dynamic Evaluate" doc:id="adfb289f-6e8f-46c9-a0ca-2db839302b8f" expression="#[vars.transformResponseModule]" />
+        <logger level="DEBUG" doc:name="Response Payload Transformed Logger" doc:id="6abf7c87-3c29-44dd-861e-4cd24e561297" message="Response Payload Transformed Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Response Payload Transformed  &gt;&gt; #[payload]" category="com.abi.traksys.erp.integration.logging.response.payload.transformed" />
+        <logger level="INFO" doc:name="Flow Exit Logger" doc:id="2fcee651-6647-4b5b-9c1f-30bb066004c7" message="Flow Exit Logger :: Flow Name : #[flow.name] &gt;&gt;Message ID : #[correlationId]" />
+    </sub-flow>
+    <sub-flow name="plantCodeValidation" doc:id="30c6167b-9d3a-4aa7-9105-9abd7335d827">
+        <set-variable value="#[p('plant_code_property')]" doc:name="Plant Code Header Property Name" doc:id="7fc77632-54b8-4624-aad2-12c8c17f372d" variableName="plantCodeProp" />
+        <set-variable value="#[lower(message.attributes.headers[vars.plantCodeProp] default &quot;&quot;)]" doc:name="Plant Code" doc:id="acacc576-b56b-4271-b3ad-e8b2af1c3b11" variableName="plantCode" />
+        <logger level="INFO" doc:name="Plantcode in the header" doc:id="5cee1269-ab5d-4c1a-bbd0-942cc82e75ad" message="Header Plantcode info Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt;Plant code in header = #[vars.plantCode]" category="com.abi.traksys.erp.integration.logging.header.plantcode"/>
+		<validation:is-not-null doc:name="Plant code not provided" doc:id="8b1fe6a0-9eae-4cd2-9a53-57bbe29de541" value="#[isEmpty(vars.plantCode)]">
+            <error-mapping targetType="APP:PLANT_CODE_HEADER_NULL" />
+        </validation:is-not-null>
+        <validation:is-true doc:name="Plant code not found on properties" doc:id="c3ca32c3-dad2-4c2b-a114-af6de367d292" expression="#[not isEmpty(p('mes_' ++ (vars.plantCode default '') ++ '.domain'))]">
+            <error-mapping targetType="APP:PLANT_CODE_NOT_FOUND" />
+        </validation:is-true>
+        <set-payload value="#[lower(vars.plantCode)]" doc:name="Set Plant Code in Payload" doc:id="807f12d4-08e8-4e82-8128-5095e247ccc6" />
+    </sub-flow>
+    <sub-flow name="authorizationValidation" doc:id="e6983bbc-afcd-4f9b-afa9-1d9dc9433a4a">
+        <set-variable value="#[message.attributes.headers.authorization]" doc:name="Authorization (authToken)" doc:id="c346b66f-506c-4133-9a93-a3c843aff6f5" variableName="authToken" />
+        <set-variable value="#[p('secure::' ++ vars.authPropertyName default &quot;&quot;)]" doc:name="Plant Authorization Token (plantAuthToken)" doc:id="792fb4bd-3db8-47ba-827f-1e41ee7fd479" variableName="plantAuthToken" />
+        <logger level="DEBUG" doc:name="Header properties info Logger" doc:id="54282b50-3514-4e73-b73b-e09a71d1eb89" message='Header properties info Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt;"Plant auth token property = " ++ vars.authToken' category="com.abi.traksys.erp.integration.logging.header.properties" />
+        <validation:is-not-null doc:name="Token in header is null" doc:id="b379fe4e-7fb4-4d4c-afb1-2410479ef8a8" value="#[vars.authToken]">
+            <error-mapping targetType="TOKEN:HEADER_NULL" />
+        </validation:is-not-null>
+        <validation:is-not-null doc:name="Plant code in properties is null " doc:id="74c8b592-7d2d-4b42-a7a6-39e08fd0488f" value="#[vars.plantAuthToken]">
+            <error-mapping targetType="TOKEN:PROPERTY_NULL" />
+        </validation:is-not-null>
+        <validation:is-true doc:name="Validate authentication token" doc:id="40b821ea-4742-4a3b-9990-dca00cfb6221" expression="#[vars.authToken == (&quot;Bearer &quot; ++ vars.plantAuthToken)]">
+            <error-mapping targetType="TOKEN:NOT_MATCH" />
+        </validation:is-true>
+    </sub-flow>
+	<sub-flow name="erpToMes" doc:id="4b1c80e9-68d0-4fc5-9b2c-6d5eb2bce3fe">
+        <ee:transform doc:name="MES Call Properties" doc:id="60dc8c31-5cea-4356-91a5-4b5a7d34e11f">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="mesProperties"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    domain: p(vars.mesPropName as String ++ ".domain"),
+    basePath: p(vars.mesPropName as String ++ ".basePath"),
+    port: p(vars.mesPropName as String ++ ".port"),
+    service: p(vars.mesPropName as String ++ ".services." ++ vars.service as String),
+    connectionTimeout: p(vars.mesPropName as String ++ ".connectionTimeout"),
+    headers: {
+        "Authorization": "Bearer " ++ p(vars.mesPropName as String ++ ".mes_auth_token")
+    }
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="DEBUG" doc:name="Sap Transform File Names" doc:id="f057342d-6b00-4b58-907f-11ce0b4675ea" message="Transform File Names Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; File with script transformation: #[vars.transformFileName]. File with response transformation: #[vars.transformResponseFileName default '']" category="com.abi.traksys.erp.integration.logging.request.tranform.files.erp.mes" />
+        <file:read doc:name="Read Module (transformModule)" doc:id="288d2b0b-e1cb-4bc4-b742-0669a4a5aa07" config-ref="Module_Config" path="#[&quot;modules/&quot; ++ vars.transformFileName]" target="transformModule" />
+        <ee:dynamic-evaluate doc:name="Dynamic Transformation" doc:id="cfd050b2-b86f-4bf8-acd1-a5ff232a3e3f" expression="#[vars.transformModule]" />
+        <logger level="DEBUG" doc:name="Payload sent to Mes" doc:id="6b093adb-68fe-4fd7-bdc2-642937658b88" message="Payload Sent Mes Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt;  Transformed #[payload]" category="com.abi.traksys.erp.integration.logging.payload.sent.mes" />
+        <logger level="DEBUG" doc:name="MES Properties Info Logger" doc:id="a75b7e9e-343a-448b-a854-74939427b8df" message="MES Properties Info Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt;  host=#[vars.mesProperties.domain], basePath=#[vars.mesProperties.basePath], port=#[vars.mesProperties.port], service=#[vars.mesProperties.service], connectionTimeout=#[vars.mesProperties.connectionTimeout]" category="com.abi.traksys.erp.integration.logging.mes.properties" />
+        <until-successful maxRetries="3" doc:name="Retry send information for mes" doc:id="49fc3cbe-ffd5-4184-8943-6e427509e142" millisBetweenRetries="3000">
+        <http:request method="POST" doc:name="MES Call" doc:id="3963446a-e152-41ff-bc15-ec4920d510ef" config-ref="MES_Http_Request_Configuration" path="#[vars.mesProperties.service]" >
+                <reconnect frequency="3000" count="3" />
+            </http:request>
+        </until-successful>
+        
+        <logger level="INFO" doc:name="Logger Payload Mes" doc:id="d9a521c9-ce2e-4ec7-9bde-aee44a2ef766" message="Payload received from mes #[payload]" />
+    </sub-flow>
+    <sub-flow doc:id="9098cc35-a31b-4cd3-907f-bcfadf41b692" name="mesToErp">
+        <flow-ref doc:name="override  (overrideServiceProcess)" doc:id="95067569-7052-4646-a72d-e013de11da3b" name="overrideServiceProcess" />
+        <flow-ref doc:name="verify Message Id from Afr" doc:id="aab2b2c5-3a2e-49d3-8d7f-dad22c5b259d" name="verifyAfrMaterialReversal"/>
+		<set-variable value="#[if(not isEmpty(p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.sap_function&quot;))) p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.sap_function&quot;) else &quot;paths.&quot; ++ (vars.service default &quot;&quot;) ++ &quot;.sap_function&quot;]" doc:name="SAP Function Name (sapFunction)" doc:id="8059d560-f2c6-4a8a-9395-48c8ddaec846" variableName="sapFunction" />
+        <set-variable value="#[if(not isEmpty(p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.transform_file&quot;))) p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.transform_file&quot; )++ &quot;.dwl&quot; else vars.transformFileName]" doc:name="Overrides transform file name (transformFileName)" doc:id="43342e97-1076-4dd0-84ec-4008f27d4135" variableName="transformFileName" />
+        <set-variable value="#[if(not isEmpty(p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.transform_response_file&quot;))) p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.transform_response_file&quot; ) ++ &quot;.dwl&quot; else vars.transformResponseFileName]" doc:name="Overrides transform file name (transformResponseFileName)" doc:id="3ddab2b4-200d-48b7-bc89-5fbf649e476b" variableName="transformResponseFileName" />
+        <logger level="DEBUG" doc:name="Transform File Names Logger" doc:id="caf5b00e-fe3f-4d65-bcd4-d683e0be308a" message="Transform File Names Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; File with script transformation: #[vars.transformFileName]. File with response transformation: #[vars.transformResponseFileName]" category="com.abi.traksys.erp.integration.logging.request.tranform.files.mes.erp" />
+        <file:read doc:name="Read Module (transformModule)" doc:id="39b55c53-0057-4584-925f-99d81a04bdb9" path="#[&quot;modules/&quot; ++ vars.transformFileName]" target="transformModule" config-ref="Module_Config" />
+        <ee:dynamic-evaluate doc:name="Dynamic Transformation" doc:id="e7abb1de-6272-4e3e-a1cf-0191b16bf8a0" expression="#[vars.transformModule]" />
+        <ee:transform doc:name="SAP Properties" doc:id="a73b3889-5fd8-4215-acac-86585f67e898">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="sapProperties"><![CDATA[%dw 2.0
+output application/java
+
+var erpBaseKey = vars.targetErpPropertyValue ++ "."
+
+---
+{
+    server: p(erpBaseKey ++ "server"),
+    username: p(erpBaseKey ++ "username"),
+    password: p("secure::" ++ erpBaseKey ++ "password"),
+    passwordPropertyName: erpBaseKey ++ "password",
+    systemNumber: p(erpBaseKey ++ "system_number"),
+    clientId: p(erpBaseKey ++ "client_id"),
+    language: p(erpBaseKey ++ "language"),
+    reconnection_frequency_ms:  p(erpBaseKey ++ "reconnection_frequency_ms"),
+    reconnection_attempts:  p(erpBaseKey ++ "reconnection_attempts"),
+    messageServerHost: p(erpBaseKey ++ "message_server_host"),
+    systemId: p(erpBaseKey ++ "system_id"),
+    messageServerPort: p(erpBaseKey ++ "message_server_port"),
+    messageServerGroupName: p(erpBaseKey ++ "message_server_group_name")
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="DEBUG" doc:name="SAP Properties Info Logger" doc:id="e1d80666-ff2a-42a6-8134-37890b25eb9f" message="SAP Properties Info Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; host= #[vars.sapProperties.server], username= #[vars.sapProperties.username] , clientId=#[vars.sapProperties.clientId], systemId=#[vars.sapProperties.systemNumber], passwordProperty=#[vars.sapProperties.passwordPropertyName],    passwordProperty=#[vars.sapProperties.reconnection_frequency_ms], passwordProperty=#[vars.sapProperties.reconnection_attempts]]" category="com.abi.traksys.erp.integration.logging.sap.properties" />
+        <logger level="DEBUG" doc:name="ERP RFC Request Logger" doc:id="81b9655a-3349-4f10-afe6-7be93ab95cdc" message="ERP RFC Request :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Request #[payload]" category="com.abi.traksys.erp.integration.logging.request.sap.rfc" />
+        <set-variable value="#[output application/java  --- 
+
+(payload.BAPI_PROCESS_MESSAGE_CREATEMLT.tables.PROCMESSCHARAC.*row filter (value, index) -&gt; (value.NAME_CHAR == 'PPPI_PROCESS_ORDER'))[0].CHAR_VALUE default null]" doc:name="get PrOrNumber from payload" doc:id="4124bca6-6b65-40c1-b575-02284b328ccb" variableName="prOrNumber" mimeType="application/java" />
+		<try doc:name="Try" doc:id="caa5f520-660e-4b2a-9d69-7c107a2a81ea" transactionalAction="ALWAYS_BEGIN">
+			<choice doc:name="Choice" doc:id="14b9d6c9-5cbb-4cb1-9496-bc94a0c792e4">
+            <when expression="#[isEmpty(vars.sapProperties.messageServerPort)]">
+					<choice doc:name="Choice" doc:id="5e0d444e-64d3-47b7-abfc-ea267c8a46ab">
+						<when expression='#[p(vars.targetErpServiceProperty default "" ++ ".send_idoc") == "true"]'>
+							<until-successful maxRetries="3" doc:name="RFC Execution Attempts (3 retries and 3 seconds between them)" doc:id="30103d51-d4fe-4b17-a035-407e14b8daae" millisBetweenRetries="3000">
+								<sap:send key="#[vars.sapFunction]" doc:name="Send IDoc Message Server" doc:id="a9a67181-448d-4ac9-ad98-6f9fdb792f77" config-ref="SAP_Outbound_ConnectionInfo" transactionalAction="ALWAYS_JOIN"/>
+							</until-successful>
+						</when>
+						<otherwise>
+							<until-successful maxRetries="3" doc:name="RFC Execution Attempts (3 retries and 3 seconds between them)" doc:id="c4ed2197-16ac-459d-be4f-1a87169a43b4" millisBetweenRetries="3000">
+								<sap:execute-synchronous-remote-function-call key="#[vars.sapFunction]" doc:name="Execute BAPI / Function over sRFC" doc:id="ea56ed65-569e-4cc2-bfda-00c1503f49ab" config-ref="SAP_Outbound_ConnectionInfo" transactionalAction="ALWAYS_JOIN"/>
+                </until-successful>
+						</otherwise>
+					</choice>
+            </when>
+            <otherwise>
+                <choice doc:name="Choice" doc:id="4d25cff3-248a-4e73-9851-dc3c533e89ab">
+                    <when expression="#[p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.send_idoc&quot;) == &quot;true&quot;]">
+                        <until-successful maxRetries="3" doc:name="RFC Execution Attempts (3 retries and 3 seconds between them)" doc:id="db04a0d6-9128-433e-b963-8d6486edb5f2" millisBetweenRetries="3000">
+                            <sap:send doc:name="Send IDoc Message Server" doc:id="291e0f8f-4b54-4319-9718-9314c2cf4431" config-ref="SAP_Outbound_ConnectionInfoMessageServer" key="#[vars.sapFunction]"/>
+                        </until-successful>
+                    </when>
+                    <otherwise>
+                        <sap:execute-synchronous-remote-function-call key="#[vars.sapFunction]" doc:name="Execute BAPI / Function over sRFC Message Server" doc:id="f6fb89c0-8272-4cfe-9aa4-9ad0f93cacd1" config-ref="SAP_Outbound_ConnectionInfoMessageServer" transactionalAction="ALWAYS_JOIN"/>
+                    </otherwise>
+                </choice>
+            </otherwise>
+        </choice>
+		</try>
+		<logger level="DEBUG" doc:name="ERP RFC Response Logger" doc:id="ac766754-cadf-4404-83a3-cc2a6c78ef73" message="ERP RFC Response :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Response #[payload]" category="com.abi.traksys.erp.integration.logging.response.sap.rfc" />
+    </sub-flow>
+    <sub-flow name="overrideServiceProcess" doc:id="7f2723d6-4a43-42df-a6a1-fed9bb73e058">
+        <set-variable value="#[if(not isEmpty(p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.read_payload&quot;))) p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.read_payload&quot;) == &quot;true&quot; else false]" doc:name="Target Read Payload (TargetReadPayload)" doc:id="721a7036-4b9b-4979-80fc-5ba871b0a4e5" variableName="TargetReadPayload" />
+        <set-variable value="#[if(not isEmpty(p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.fied_to_be_validated&quot;))) p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.fied_to_be_validated&quot;) else null]" doc:name="Field to Validate not Empty (TargetFieldToValidate)" doc:id="375a561d-14a5-49c2-8273-341e693437e3" variableName="TargetFieldToValidate" />
+        <flow-ref doc:name="Check and Override for cold Operations (hotColdCheckOverride)" doc:id="2c5495f2-cf8b-45de-9a3c-1d957b0d4413" name="hotColdCheckOverride"/>
+        <choice doc:name="Choice" doc:id="c97698ab-a46a-4244-ac6d-7cee367540f0">
+            <when doc:id="430ddf66-9d52-4fab-97f9-6f0e1b3fb070" expression="#[vars.TargetReadPayload and not isEmpty(payload['ProductionOrderRequests']['ProductionOrderRequest']['PlannedOrderNr']) and not isEmpty(p(vars.targetErpServiceProperty ++ &quot;.target_service&quot;))]">
+                <set-variable value="#[p(vars.targetErpServiceProperty default &quot;&quot; ++ &quot;.target_service&quot;)]" doc:name="override service (service)" doc:id="f361f1eb-3624-4525-a775-5513d91843f9" variableName="service" />
+                <set-variable value="#[vars.targetErpPropertyValue default &quot;&quot; ++ &quot;.services.&quot; ++ (vars.service default &quot;&quot;)]" doc:name="override target erp  Service (targetErpServiceProperty)" doc:id="2db44254-9a6d-489b-9347-c0404db7277c" variableName="targetErpServiceProperty" />
+                <logger level="INFO" doc:name="Service overrided" doc:id="d368517f-6a7c-4640-a805-920fc6d004f6" message="Override Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service overrided for read payload #[vars.service]" category="com.abi.traksys.erp.integration.logging.service.overrided" />
+            </when>
+            <otherwise>
+                <logger level="INFO" doc:name="Service overrided" doc:id="fbc8d5f0-da78-4698-b0c3-91302f778031" message="Override Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service NOT orverrided for read payload #[vars.service]" category="com.abi.traksys.erp.integration.logging.service.not.overrided" />
+            </otherwise>
+        </choice>
+    </sub-flow>
+    <sub-flow name="hotColdCheckOverride" doc:id="3a7ca3e5-039c-43f8-8a0e-c3af8359f7d6">
+	<set-variable value='#[message.attributes.headers."type" default ""]' doc:name="Header Type value (OverrideProcess)" doc:id="548e0d10-8d1f-4d43-8817-787022c06f92" variableName="type"/>
+		<choice doc:name="Choice" doc:id="fc3b4b6d-2bd1-438f-93f6-2447446fd8fd" >
+			<when expression="#[vars.&quot;type&quot; == 'X' or vars.&quot;type&quot; == 'x']">
+				<logger level="INFO" doc:name="Header properties info Logger" doc:id="e22f63c3-b3c9-49fd-a208-5550ce435723" message='Header properties info Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt;Type in header = cold | Value:  #[vars."type"]   ' />
+				<set-variable value="#[vars.service as String ++ 'cold']" doc:name="Override Service" doc:id="a8e88b6f-230e-4114-9acc-be5d0fe9beab" variableName="service" />
+				<set-variable value="#[vars.targetErpPropertyValue default &quot;&quot; ++ &quot;.services.&quot; ++ (vars.service default &quot;&quot;)]" doc:name="override target erp Service (targetErpServiceProperty)" doc:id="47de356e-b0f5-4872-8c9f-e785f10e2732" variableName="targetErpServiceProperty" />
+				<logger level="INFO" doc:name="Service Override for cold" doc:id="258241f4-34d6-4d29-bf38-5d2185ec3a53" message="Override Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service overrided for COLD #[vars.service]" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Service overrided" doc:id="a0fb857d-9016-4f7c-ae01-ff152276f9e7" message="Override Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Service NOT orverrided for COLD #[vars.service]"/>
+			</otherwise>
+		</choice> 
+	</sub-flow>
+	<sub-flow name="verifyAfrMaterialReversal" doc:id="3232d9e0-03b9-4d28-ba1a-44618727cb59" >
+		<choice doc:name="Choice" doc:id="158e0962-bc38-490d-b704-7b54a225147e" >
+			<when expression="#[vars.targetErp == 'afr' and vars.service == 'materialmovementreversal']">
+				<set-variable value="#[output application/java  ---  payload['MaterialMovementReversal']['MessageDefinitionID']]" doc:name="Get Message Definition ID ( MessageDefinitionID )" doc:id="3179e017-2c39-4f2b-8d43-493e94737d63" variableName="messageDefinitionId"/>
+				<validation:is-true doc:name="verify message definition id 1 or 3" doc:id="b1eb362d-ccb7-4841-9904-9d73b9a69d6e" message="Reversal not possible to ‘MessageDefinitionID’" expression="#[[ '1', '3' ] contains(vars.messageDefinitionId)]">
+					<error-mapping targetType="APP:AFR_REVERSAL_MESSAGE_ID" />
+				</validation:is-true>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Verify Afr Material Reversal" doc:id="f6e6e9cd-1bfd-4463-b52c-8796abe5f664" message="Is not Afr Material Reversal"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

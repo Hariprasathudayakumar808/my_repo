@@ -1,0 +1,77 @@
+trigger:
+  branches:
+    include:
+      - dev
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+  - repository: appsectemplates
+    type: git
+    name: DevSecOps/DevSecOps
+    
+variables:
+- group: MULESOFT_PLATFORM_MUNIT_COVERAGE
+- group: MULESEOFT_RELEASE_VARIABLE_traksys-erp-integration-DD-dev
+
+steps:
+
+- checkout: self
+- checkout: appsectemplates
+
+- task: DownloadSecureFile@1
+  displayName: 'Download secure file'
+  name: 'RFile'
+  inputs:
+    secureFile: 'settings'
+
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'clean test package'
+    options: '-s $(RFile.secureFilePath) -Dmunit.runCoverage=$(munit.runCoverage) -Dmunit.failBuild=$(munit.failBuild) -Dmunit.reqAppCoverage=$(munit.reqAppCoverage) -Denv=$(env) -Dkey=$(key)'
+    publishJUnitResults: false
+    javaHomeOption: 'JDKVersion'
+    mavenVersionOption: 'Default'
+    mavenAuthenticateFeed: false
+    effectivePomSkip: false
+    sonarQubeRunAnalysis: false
+
+- template: pipeline_templates/Security_tasks/prepareSonarCloud.yml@appsectemplates
+  parameters:
+    SCServiceConnection: 'SonarcloudServer'
+    SCProjectKey: 'mulesoft-traksys-erp-integration-DD' 
+    SCProjectName: 'mulesoft-traksys-erp-integration-DD'
+    SCBranchName: '$(Build.SourceBranchName)'
+    # SCBaseDirPath: './$(Build.Repository.Name)'
+
+
+- template: pipeline_templates/secure_code_scan.yml@appsectemplates
+  parameters:
+    
+    scanSonarCloud: true
+    sonarCloudGate: false
+    SCServiceConnection: 'SonarcloudServer'
+
+    scanSnyk: false
+    SkServiceConnection: <SnykServiceConnectionName>
+    SkOrganization: b0d0849d-1f3f-499f-b7bf-7ac280b8d944
+    SkProjectName: $(System.TeamProject)#mulesoft-traksys-erp-integration-DD-dev
+    scanGitleaks: false
+
+    scanCheckmarx: true
+    CxServiceConnection: 'CheckmarxServer'
+    CxPreset: 'ASA_SDLC_Ready'
+    CxEnableSyncScan: false
+    CxEnableThreshold: false
+    CxTeamName: '/CxServer/AB-InBev/GHQ/Mulesoft'
+    CxProjectName: $(System.TeamProject)#mulesoft-traksys-erp-integration-DD-dev
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: '$(Parameters.artifactName)'
+    publishLocation: 'pipeline'

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <error-handler name="allErrorHandler" doc:id="a7a1ab87-5b29-42c5-9798-77d98ceb3409">
+        <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="eb67b316-f181-4387-91d6-500b27c048f5" >
+            <logger level="INFO" doc:name="Logger" doc:id="1190ff2c-54d0-4c12-b82c-aec0e869d5bf" message="#[error]"/>
+			<async doc:name="Async" doc:id="04d95d18-da9f-474b-a143-a58748cfcb60" >
+				<email:send doc:name="Email if have errors" doc:id="639dbaea-df8c-48e9-8977-6e55b135c4cb" toAddresses="#[p(&quot;smtp.email.to&quot;) splitBy (',')]" fromAddress="${smtp.email.from}" subject="[MES - ERP] Integration exception - #[( vars.plantCode default '')] Failure" config-ref="Email_SMTP">
+                            <reconnect />
+                            <email:body contentType="text/plain">
+                    <email:content><![CDATA[#[%dw 2.0
+output text/plain
+---
+'An exception occurred in the [MES - ERP] Integration. \r\n \r\n Plantcode: '++ (vars.plantCode default '') ++ ' \r\n Service: ' ++ (vars.service  default '')++ ' \r\n Message ID: ' ++ correlationId ++ ' \r\n Exception: ' ++ error.description]]]></email:content>
+                </email:body>
+
+             </email:send>
+			</async>
+</on-error-propagate>
+    </error-handler>
+    </mule>
+
+
+<!--
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <error-handler name="allErrorHandler" doc:id="487cb708-3d82-4a38-a824-b2f0756c579a">
+        <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ec815caf-5c98-4fe3-a01c-0f0629fda73e" >
+            <async doc:name="Async" doc:id="691e906d-103e-412c-b453-d4665af10183" >
+                <logger level="INFO" doc:name="Logger" doc:id="70dfff43-b74f-40d6-9ed0-041e4b2b9c97" message="sending datadog"/>
+				<http:request method="POST" doc:name="Request" doc:id="07d7c8ae-1d04-4aca-8a97-5dd5e2e2b887" sendCorrelationId="NEVER" path="input/" config-ref="Datadog_HTTP">
+            <http:body ><![CDATA[#[output application/json
+
+
+
+{ "Type": "ERROR",
+    "Date": now() as String {format: "y-MM-dd hh:m:s"},
+    "Service": vars.service default '' ,
+    "Site": vars.plantCode default '',
+    "MessageID": correlationId default '',
+    "ErrorMessage": error.description default '',
+    "payload": payload default ''
+}]]]></http:body>
+            <http:headers ><![CDATA[#[output application/java
+-&#45;&#45;
+{
+	'DD-APPLICATION-KEY' : 'c5fece203b7edd13b5f4ecf958be26ff3a2252c8',
+	'DD-API-KEY' : '1dd922cca1cda4e7e1f2edb508e1ad50'
+}]]]></http:headers>
+            <http:query-params ><![CDATA[#[output application/java
+-&#45;&#45;
+{
+	'ddtags' : 'TYPE:INFO,Env:DEV',
+	'ddsource' : 'GMULEDEV'
+}]]]></http:query-params>
+        </http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="eb2d3632-af00-4048-baba-8d3e669fc127" message="#[error]"/>
+            
+			</async>
+</on-error-propagate>
+    </error-handler>
+    </mule>
+-->

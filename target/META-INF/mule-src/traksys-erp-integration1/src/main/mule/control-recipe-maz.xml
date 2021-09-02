@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd">
+	<sub-flow name="controlRecipeProcessMazFlow" doc:id="d9b7989b-6063-4a60-90d1-7ebb12be5e69" >
+		<set-variable value="controlrecipedownload" doc:name="override service to controlrecipedownload (service)" doc:id="d42869ba-25c4-41d9-92fd-14a4b8ce49e3" variableName="service" />
+		<logger level="INFO" doc:name="Logger" doc:id="1fd6642c-b08c-4099-bead-dc7b749960d7" message="entered on control recipe process"/>
+		<choice doc:name="Choice" doc:id="3d5ff811-80bc-4994-b05c-9fbe80f2c6ba" >
+			<when expression="#[not isEmpty(payload['ZPAIMF_MES_CREATE_PO']['export']['ET_LOG']['row']['PRORNUMBER'])]" doc:id="edc7275e-3e10-41d0-a494-74a7d99e6a6e">
+				<async doc:name="Async" doc:id="db39a176-b4f6-4b01-9555-80f1f4e814bd" >
+					<flow-ref doc:name="execMesToErpAndErpToMes (execMesToErpAndErpToMes)" doc:id="2b11e1b7-256b-49ca-935d-729253701cdd" name="execMesToErpAndErpToMes" />
+				</async>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="PRORNUM not provided" doc:id="2a7db25e-c904-4432-9e4d-914df7f0f5e7" message="PRORNUM not provided"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

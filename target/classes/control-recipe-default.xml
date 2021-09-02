@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+    xmlns="http://www.mulesoft.org/schema/mule/core"
+    xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+
+	<flow name="controlRecipeEurFlow" doc:id="ddb3ddd3-2241-49ea-a987-3286014c20dd" initialState="started">
+        <sap:function-source operationTimeout="${erp.eur.services.controlrecipedownload.operation_timeout}" doc:name="Function source" doc:id="6a901d6c-de8f-4c23-97cd-99bacfaecf62" config-ref="SAP_Inbound_EUR" gatewayHost="${erp.eur.server}" gatewayService="${erp.eur.services.controlrecipedownload.gateway_service}" programID="${erp.eur.services.controlrecipedownload.program_id}" targetedFunction="${erp.eur.services.controlrecipedownload.targeted_function}" connectionCount="${erp.eur.services.controlrecipedownload.connection_count}"/>
+		<flow-ref doc:name="Flow Reference (controlRecipeDefaultFlow)" doc:id="51ac871e-1aaf-4ba0-b2c5-65d89820fb65" name="controlRecipeDefaultFlow"/>
+    </flow>
+	<flow name="controlRecipeApacFlow" doc:id="5a65fbb0-c8c8-49f2-8d8f-66c5e2537743" initialState="started">
+		<sap:function-source operationTimeout="${erp.apac.services.controlrecipedownload.operation_timeout}" doc:name="Function source" doc:id="db241add-edf8-4c96-9e3f-fbf0cd0a2330" gatewayHost="${erp.apac.server}" gatewayService="${erp.apac.services.controlrecipedownload.gateway_service}" programID="${erp.apac.services.controlrecipedownload.program_id}" targetedFunction="${erp.apac.services.controlrecipedownload.targeted_function}" config-ref="SAP_Inbound_APAC" connectionCount="${erp.apac.services.controlrecipedownload.connection_count}"/>
+		<flow-ref doc:name="Flow Reference (controlRecipeDefaultFlow)" doc:id="6b2ef8b1-84b6-4388-93e9-81cd2f68e752" name="controlRecipeDefaultFlow"/>
+	</flow>
+	<flow name="controlRecipeAfrFlow" doc:id="bf3193cb-05cc-45f7-9113-cfb491e046ad" initialState="started">
+		<sap:function-source operationTimeout="${erp.afr.services.controlrecipedownload.operation_timeout}" doc:name="Function source" doc:id="4d8a7671-29b5-4b99-ad62-7950324475ed" config-ref="SAP_Inbound_AFR" gatewayHost="${erp.afr.server}" gatewayService="${erp.afr.services.controlrecipedownload.gateway_service}" programID="${erp.afr.services.controlrecipedownload.program_id}" targetedFunction="${erp.afr.services.controlrecipedownload.targeted_function}" connectionCount="${erp.afr.services.controlrecipedownload.connection_count}"/>
+		<flow-ref doc:name="Flow Reference (controlRecipeDefaultFlow)" doc:id="1d15940a-6097-4022-8713-fe1c09214771" name="controlRecipeDefaultFlow"/>
+	</flow>
+	<flow name="controlRecipeNazFlow" doc:id="38008658-0599-452d-abec-641d5cb5828d" initialState="started">
+		<sap:function-source operationTimeout="${erp.naz.services.controlrecipedownload.operation_timeout}" doc:name="Function source" doc:id="deff6ee8-0395-47ef-893a-5f24f3f8865a" config-ref="SAP_Inbound_NAZ" gatewayHost="${erp.naz.server}" gatewayService="${erp.naz.services.controlrecipedownload.gateway_service}" programID="${erp.naz.services.controlrecipedownload.program_id}" connectionCount="${erp.naz.services.controlrecipedownload.connection_count}" targetedFunction="${erp.naz.services.controlrecipedownload.targeted_function}" />
+		<flow-ref doc:name="Flow Reference (controlRecipeDefaultFlow)" doc:id="ac9aec30-1e47-4478-8518-487add6ae46f" name="controlRecipeDefaultFlow" />
+	</flow>
+
+	<sub-flow name="controlRecipeDefaultFlow" doc:id="ba498b98-6908-45ef-b789-c2fda4b4a2e0" >
+        <logger level="DEBUG" doc:name="Payload From SAP Function" doc:id="e131af2c-8a3e-4651-b598-5ab5f3a353f0" message="Function Source Module Control Recipe Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Get sap payload from Function source #[payload]" category="com.abi.traksys.erp.integration.logging.control.recipe.from.sap"/>
+        <ee:transform doc:name="Get CRIDs" doc:id="823b59d6-3f51-45f6-8fd8-29f97ee22a80">
+            <ee:message>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="content"><![CDATA[%dw 2.0
+output application/java
+---
+{
+    CRID:(payload.CONTROL_RECIPE_DOWNLOAD.tables.CRHE.*row map(value, index) -> (value.CRID))
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <foreach doc:name="For Each" doc:id="4039a8cb-9be9-4665-aa75-2532c3fdf561" collection="#[vars.content.CRID]">
+            <set-variable value="controlrecipedownload" doc:name="set service from properties (service)" doc:id="1504679e-917a-4c2f-b74f-1dba5a8f3f19" variableName="service" />
+            <set-variable value="#[output application/java
+
+---
+(vars.rootMessage.payload.CONTROL_RECIPE_DOWNLOAD.tables.CRHE.*row filter(value) -&gt; value.CRID == payload)[0].WERK]" doc:name="Set Variable (plantCode)" doc:id="1f216e68-6977-4754-ab21-b18ab4997461" variableName="plantCode" />
+            <set-variable value="#['mes_' ++ (lower(vars.plantCode) default &quot;&quot;)]" doc:name="Mes Properties Name (mesPropName)" doc:id="4d0a9d98-055e-4b92-adc8-7f5d86ac3e04" variableName="mesPropName" />
+            <set-variable value='#["erp." ++ p((vars.mesPropName as String) ++ ".target_erp")]' doc:name="Target ERP Value (targetErpPropertyValue)" doc:id="fa53d974-1690-4683-b474-32d5406fd60d" variableName="targetErpPropertyValue" />
+            <set-variable value='#[vars.targetErpPropertyValue ++ ".services." ++ (vars.service default "")]' doc:name="Target ERP Service Property (targetErpServiceProperty)" doc:id="2acae7b4-47ba-4a73-bc02-f916bbc38da1" variableName="targetErpServiceProperty" />
+            <set-variable value='#[if(not isEmpty(p(vars.targetErpServiceProperty default "" ++ ".transform_file"))) p(vars.targetErpServiceProperty default "" ++ ".transform_file" )++ ".dwl" else vars.transformFileName]' doc:name="Overrides transform file name (transformFileName)" doc:id="8176eaf5-34bc-4161-b35f-4f730089bf4d" variableName="transformFileName" />
+            <flow-ref doc:name="exec ErpToMes" doc:id="ac81c007-5369-4c69-b435-fb14e0b7d7d5" name="erpToMes" />
+        </foreach>
+    
+</sub-flow>
+
+</mule>

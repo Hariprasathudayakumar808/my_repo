@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd">
+	<flow name="schedulerSazMaterialMaster" doc:id="29eb3997-72e0-4f95-8f80-a8e4b3f88473" >
+		<scheduler doc:name="Scheduler" doc:id="1501aa84-db4a-48c8-84a9-93931ab1b96d" >
+			<scheduling-strategy >
+				<cron expression="0 0 1 ? * *" />
+			</scheduling-strategy>
+		</scheduler>
+		<set-variable value="materialmaster" doc:name="set service from properties (service)" doc:id="1c779054-f414-44ff-9e4a-80b974327291" variableName="service" />
+		<flow-ref doc:name="Scheduller Flow (forEachExecMesSap)" doc:id="27d9e168-bc1f-4f1c-b0a3-1fef5ed76c80" name="forEachExecMesSap" />
+	</flow>
+    <flow name="schedulerSazMaterialBom" doc:id="b7bb9a40-b481-4bcf-a251-c4f26f2d7893" >
+        <scheduler doc:name="Scheduler" doc:id="00da1fa3-663e-474c-886d-b8960af39b23" >
+            <scheduling-strategy >
+                <cron expression="0 0 1 ? * *" />
+            </scheduling-strategy>
+        </scheduler>
+        <set-variable value="materialbom" doc:name="set service from properties (service)" doc:id="50053d9a-0d6b-4a5c-8d7b-debcec9aaff0" variableName="service" />
+        <flow-ref doc:name="Scheduller Flow (forEachExecMesSap)" doc:id="30890e06-9690-46c1-ac23-bd9636f13982" name="forEachExecMesSap" />
+    </flow>
+    
+	<flow name="schedulerProductionScheduling" doc:id="d63cebb4-a1da-484c-80c1-1c2d424ca32d" >
+		<scheduler doc:name="Scheduler" doc:id="c46503c0-a33c-48b1-a1e0-1bec902bd001" >
+			<scheduling-strategy >
+				<cron expression="0 0 1 ? * *" />
+			</scheduling-strategy>
+		</scheduler>
+		<set-variable value="productionscheduling" doc:name="set service from properties (service)" doc:id="9a3f1198-5db3-450c-b477-a9ded57fc79c" variableName="service"/>
+		<flow-ref doc:name="Flow Reference (setMaterialsSubFlow)" doc:id="2cf8a369-aad5-4298-980e-8f09e105a576" name="setMaterialsSubFlow"/>
+	</flow>
+	<flow name="schedulerStockBatch" doc:id="f519866f-8109-42b0-b55a-d40b245c4b48" >
+		<scheduler doc:name="Scheduler" doc:id="e88168d4-70cf-4fda-bef8-aee521a5e297" >
+			<scheduling-strategy >
+				<cron expression="0 0 1 ? * *" />
+			</scheduling-strategy>
+		</scheduler>
+		<set-variable value="stockbatch" doc:name="set service from properties (service)" doc:id="5bebc432-a680-47f9-ac90-ee1ee4f54e99" variableName="service"/>
+		<flow-ref doc:name="Flow Reference (setMaterialsSubFlow)" doc:id="163219d7-0cd1-444f-8418-b2526ca6b2b5" name="setMaterialsSubFlow"/>
+	</flow>
+	<sub-flow name="setMaterialsSubFlow" doc:id="433aec20-3ca6-4beb-a9ba-4f1533246c74" >
+		<set-variable value="#[p('scheduler.saz.' ++ vars.service default '' ++ '.areas') splitBy (&quot;,&quot;)]" doc:name="set areas from properties (areas)" doc:id="3af6ffd6-d4df-469e-b731-1ab343ec62ba" variableName="areas" />
+		<foreach doc:name="For Each Areas" doc:id="fda636fd-373a-42e2-9d64-1d4b4567b89a" collection="#[vars.areas]">
+			<set-variable value="#[payload]" doc:name="Set Variable ( plantCode )" doc:id="92567231-9c0c-42c4-b1c1-2612be621b06" variableName="plantCode" />
+			<set-variable value="#[p('scheduler.saz.' ++ vars.service default '' ++ '.materials.' ++ vars.plantCode)]" doc:name="Set materials from properties (materials)" doc:id="72c03367-fbb4-4915-8a9d-e8c581464b48" variableName="materials"/>
+			<set-variable value='#[vars.materials splitBy (",")]' doc:name="split Materials (materialSplited)" doc:id="56deef85-3b74-4aa8-a70d-ad33dba95dbd" variableName="materialSplited" />
+			<foreach doc:name="For Each Materials" doc:id="c63cedaf-ac1d-458c-923b-c5f97b56da28" collection="#[vars.materialSplited]" >
+    			<set-variable value="#[payload]" doc:name="set Single Merial (singleMaterial)" doc:id="2cbeaa97-5e56-4814-a172-b1e52daf1d23" variableName="singleMaterial" />
+    			<flow-ref doc:name="Execute the call to SAP and return a posto to MES (execMesToErpAndErpToMes)" doc:id="37a08094-dab4-46fd-978e-e6509ecfb09a" name="execMesToErpAndErpToMes" />
+    		</foreach>
+		</foreach>
+	</sub-flow>
+	<sub-flow name="forEachExecMesSap" doc:id="84eed93b-e8b0-43de-8e24-8eafb6f1d9c4">
+		<set-variable value="#[p('scheduler.saz.' ++ vars.service) splitBy (&quot;,&quot;)]" doc:name="set areas from properties (areas)" doc:id="fa6a6b5b-f0bc-4611-94a2-45548ec3be06" variableName="areas" />
+		<foreach doc:name="For Each" doc:id="e8bc8370-f875-493c-8442-aa36f8e1e8f6" collection="#[vars.areas]">
+			<set-variable value="#[payload]" doc:name="Set Variable ( plantCode )" doc:id="5603a9ec-4f24-451e-9d8f-adde6dad2911" variableName="plantCode" />
+			<flow-ref doc:name="Execute the call to SAP and return a posto to MES (execMesToErpAndErpToMes)" doc:id="4e2726a2-8c50-4d08-9e4f-ff47c4395e9c" name="execMesToErpAndErpToMes" />
+		</foreach>
+	</sub-flow>
+</mule>

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ns0:MaterialActualsGI xmlns:ns0="http://schemas.inbev.com/eerp">
+  <MaterialActualGI>
+    <MESKey>a31e881f-137b-43a7-9486-a8d6f113b0c0</MESKey>
+    <PrOr>200000165538</PrOr>
+    <Material>000000000050008601</Material>
+    <Plant>BR35</Plant>
+    <UoM>HL</UoM>
+    <Quantity>200.00000000</Quantity>
+    <EventDate>20191125</EventDate>
+    <EventTime>103616</EventTime>
+    <BatchNr>S112104506</BatchNr>
+    <StorageLocation>2001</StorageLocation>
+  </MaterialActualGI>
+</ns0:MaterialActualsGI>

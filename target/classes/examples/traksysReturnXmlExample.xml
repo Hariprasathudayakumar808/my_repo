@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns0:InterfaceLog xmlns:ns0="http://schemas.inbev.com/eerp">
+<InterfaceLog>
+  <InterfaceID>MF_90</InterfaceID>
+  <PrOrNumber>001000848693</PrOrNumber>
+  <MESKey>7d9c1d36-ab0b-4378-bb5e-4e170269b6fc </MESKey>
+  <MsgStatusCode>S</MsgStatusCode>
+  <MsgClass>Sasdf</MsgClass>  
+  <MsgNumber>000</MsgNumber>
+  <MsgDescription>asdfafd</MsgDescription>
+</InterfaceLog>
+</ns0:InterfaceLog>

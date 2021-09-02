@@ -1,0 +1,84 @@
+#MES Servers configuration
+  #Format mes_{PLANT_CODE}
+log_payload: "true"
+plant_code_property: "plant_code"
+
+#Kharkiv
+mes_ua02: #TODO: sera que sempre serao HTTPS? um truststore para cada servidor de conexao?
+  connectionTimeout: "180000"
+  domain: "172.18.246.28" #TODO: temporary, will be placed by domain name
+  basePath: "/TS/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![WKr8CmN74kSl2OdTTxBr4g==]" #MES Access Token
+  mule_auth_token: "![IK67vNNffujbSt+WmR6g0g==]" #Mule Access Token
+  target_erp: "eur"
+  services:
+    controlrecipedownload: "PutControlRecipe" #MES Service Path
+
+#Nikolaev
+mes_ua03: 
+  connectionTimeout: "180000"
+  domain: "172.18.244.4" #TODO: temporary, will be placed by domain name
+  basePath: "/TS/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![IK67vNNffugS9CUlQRvqmA==]"
+  mule_auth_token: "![IK67vNNffujbSt+WmR6g0g==]"
+  target_erp: "eur"
+  services:
+    controlrecipedownload: "PutControlRecipe" 
+
+#Guarulhos
+mes_br09: 
+  connectionTimeout: "180000"
+  domain: "GBLMES-APP1-DEV" #TODO: Validate hostname
+  basePath: "/TS/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![IK67vNNffugS9CUlQRvqmA==]"
+  mule_auth_token: "![IK67vNNffujbSt+WmR6g0g==]"
+  target_erp: "saz" 
+  services:
+    controlrecipedownload: "PutControlRecipe" 
+
+paths: 
+  processorder:
+    from: "mes"
+    to: "erp"
+    transform_file: "ProcessOrder"
+    transform_response_file: "ProcessOrderResponse"
+    sap_function: "ZXX_CREATE_PO_CHG_RES_MES_SAP"
+  controlrecipedownload:
+    from: "erp"
+    to: "mes"
+    transform_file: "ControlRecipeDownload"
+    transform_response_file: "ControlRecipeDownloadResponse"
+
+erp:
+  eur:
+    server: "saperosc.we.interbrew.net"
+    username: "TRAKSEROCPIC"
+    password: "![1V/DEUPiVxSum8Ka48WMlw==]"
+    system_number: "76"
+    client_id: "100"
+    mule_auth_token: "![w+0sm6r5b9CrKY/sOdFapw==]"
+    language: "EN"
+    reconnection_frequency_ms: "3000"
+    reconnection_attempts: "3"
+    #Overrides default transform file name and sap function
+    #services:
+    #  processorder:
+    #    transform_file: "ProcessOrder"
+    #    transform_response_file: "ProcessOrderResponseTeste"
+    #    sap_function: "FUNCAO_SAP_PROCESS_ORDER"
+  saz:
+    server: "acsxecc02.la.interbrew.net"
+    username: "username"
+    password: "password"
+    system_number: "system_number"
+    client_id: "client_id"
+    mule_auth_token: "auth_token"
+    language: "EN"    
+    reconnection_frequency_ms: "3000"
+    reconnection_attempts: "3"
+    
+
+  

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="execMesToErpAndErpToMes" doc:id="de30117c-431b-4277-aec9-1c41a4969e55" >
+		<try doc:name="Try" doc:id="8abd5db3-367c-443a-a64f-74931086d46a" >
+			<set-variable value="#['mes_' ++ (vars.plantCode default &quot;&quot;)]" doc:name="mesPropName" doc:id="519d2bde-0708-4a83-93db-f8c2a988c5d9" variableName="mesPropName" />
+			<set-variable value='#["erp." ++ p((vars.mesPropName as String) ++ ".target_erp")]' doc:name="Target ERP Value (targetErpPropertyValue)" doc:id="80b426ad-6799-4d80-896d-0fc9d60d0546" variableName="targetErpPropertyValue" />
+			<set-variable value='#[vars.targetErpPropertyValue ++ ".services." ++ (vars.service default "")]' doc:name="Target ERP Service Property (targetErpServiceProperty)" doc:id="72e9d4e2-74aa-425a-8073-f687b1bbf66d" variableName="targetErpServiceProperty" />
+			<flow-ref doc:name="Call MesToErp" doc:id="98d37ba9-72fd-4997-9212-a425d9eb43e3" name="mesToErp" target="returnFromSap" />
+			<ee:transform doc:name="setPayload as the result from SAP" doc:id="e7ac8033-e67b-4bf3-8dba-329d53726908">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+vars.returnFromSap]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value='#[p(vars.targetErpServiceProperty ++ ".transform_response_file" )++ ".dwl"]' doc:name="Override the transformFileName as transformFileNameResponse" doc:id="a249dc8c-be54-492a-bd6d-b9bf76ce2359" variableName="transformFileName" />
+			<flow-ref doc:name="Call ErpToMes" doc:id="d817f893-bdcd-4bec-a4e6-b02d793f726e" name="erpToMes" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e2ecca24-42fe-4fde-99da-b43461e4acdb" >
+					<logger level="INFO" doc:name="Logger" doc:id="93d1fbcf-b821-48c8-ba0e-7599cae9bb3b" message="Scheduler async Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Error Try Catch: #[error.description] "/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+</mule>

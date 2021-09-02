@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+    <flow name="traksys-erp-integration-main">
+        <http:listener path="/api/*" config-ref="traksys-erp-integration-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]" />
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="traksys-erp-integration-config" />
+		<choice doc:name="Choice" doc:id="103ff959-3029-4f77-a97f-8940860bb792" >
+			<when expression='#[var erp = Mule::p("mes_" ++ vars.plantcode as String ++ ".target_erp")
+&#10;var variable = "erp." ++ erp ++ ".services." ++ vars.service as String ++ ".error"
+&#10;---
+&#10;Mule::p(variable) == "false"]'>
+				<set-variable value="500" doc:name="HttpStatus changed value response" doc:id="ddad6a38-703c-4d41-9ae6-ce60673eb5f7" variableName="httpStatus" />
+				<logger level="INFO" doc:name="Logger validate if return is 500 profisse-materials and profissematerialsBOM" doc:id="70f948d2-3ac2-40df-a2c7-f924d3fa0810" message='#[output application/java
+&#10;&#10;---
+&#10;&#10;"Code response for PTS: " ++ vars.httpStatus as String]'/>
+			</when>
+			<otherwise >
+				<set-variable value="200" doc:name="HttpStatus changed value response" doc:id="90028c3c-4d0d-485b-8e03-d374f0a0a732" variableName="httpStatus" />
+				<logger level="INFO" doc:name="Logger default return without flag in service" doc:id="a5ea965d-eb90-4f1b-b310-41665e3ef6bf" message='#[output application/java
+&#10;&#10;---
+&#10;&#10;"Default return code:" ++ vars.httpStatus as String]'/>
+			</otherwise>
+		</choice>
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="Unrecognized plant code (On Error Propagate)" doc:id="1aae18f9-81b0-401e-8896-6b371f9f8542" type="APP:PLANT_CODE_HEADER_NULL, APP:PLANT_CODE_NOT_FOUND">
+                <logger level="ERROR" doc:name="Plant Code not informed Logger" doc:id="4f0975e4-2624-4f69-8ef4-4c8277b35466" message="Plant Code not informed Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Message: #[error.description]" />
+                <set-variable value="406" doc:name="Http 406" doc:id="86d5d122-473c-4cae-be64-4627bcce31f6" variableName="httpStatus" />
+                <ee:transform doc:name="Transform Message" doc:id="366872d6-c698-454a-8511-217d953cb434">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml encoding="UTF-8"
+---
+{
+    message: "Plant code not found"
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="Resource Not Found (On Error Propagate)" doc:id="1fad85b2-d7ca-4e3e-b77d-17ce9fa5a7cf" type="TOKEN:HEADER_NULL, TOKEN:NOT_MATCH, TOKEN:PROPERTY_NULL">
+                <logger level="ERROR" doc:name="Invalid Path Logger" doc:id="7318b1d6-ff36-46bf-a948-5020c253055b" message="Invalid Path Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Message: #[error.description]" />
+                <set-variable value="401" doc:name="Http 401" doc:id="22eb3d7b-b0bd-4b7a-87a0-62311dfb2996" variableName="httpStatus" />
+                <ee:transform doc:name="Transform Message" doc:id="96ae8fa4-3290-43a7-9ac2-2ce4436be099">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml encoding="UTF-8"
+---
+{
+    message: "Failed authentication"
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="Generic error (On Error Propagate)" doc:id="45117304-e591-415e-b967-6b0fbfdb4391" type="ANY">
+                <set-variable value="500" doc:name="Http 500" doc:id="2efff048-f259-4ef3-be8a-2bfd0188e190" variableName="httpStatus" />
+                <ee:transform doc:name="Transform Message" doc:id="9b544500-921d-4db2-bf3f-2a509d147058">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/xml encoding="UTF-8"
+---
+{
+    message: error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="traksys-erp-integration-console">
+        <http:listener config-ref="traksys-erp-integration-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]" />
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="traksys-erp-integration-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\controlrecipedownload:traksys-erp-integration-config">
+        <set-variable value="controlrecipedownload" doc:name="Set Variable  ( service )" doc:id="ea1fa21f-aa83-467b-9602-2caf9fb3b91e" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="3b6a3c00-1d7f-4e92-a1c7-47b29e6aa2e4" name="initialFlow" />
+    </flow>
+    <flow name="post:\materialconfirmation:traksys-erp-integration-config">
+        <set-variable value="materialconfirmation" doc:name="Set Variable  ( service )" doc:id="ae6bad93-480c-4696-b09d-7a6bfddf188f" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="cc42162f-fa27-465b-87d6-c1f724460f8f" name="initialFlow" />
+    </flow>
+    <flow name="post:\materialissue:traksys-erp-integration-config">
+        <set-variable value="materialissue" doc:name="Set Variable  ( service )" doc:id="6dc366b2-cf1d-4318-942c-d4590129b1cd" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="4728c4d2-b6a5-4e69-9fc8-1b5ff5f89fd7" name="initialFlow" />
+    </flow>
+    <flow name="post:\materialreceipt:traksys-erp-integration-config">
+        <set-variable value="materialreceipt" doc:name="Set Variable  ( service )" doc:id="7dc798ad-2304-40c3-832a-eef933cc99fc" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="1f4d6c26-8fcf-49f7-99c9-eb14f1676799" name="initialFlow" />
+    </flow>
+    <flow name="post:\processorder:traksys-erp-integration-config">
+        <set-variable value="processorder" doc:name="Set Variable ( service )" doc:id="e3a6086e-9ce6-436d-b455-bef45b99cad7" variableName="service" />
+        <flow-ref doc:name="Flow Reference" doc:id="2ba793e7-159c-4123-9268-4c4c98cbdc1c" name="initialFlow" />
+    </flow>
+    <flow name="post:\processorderclose:traksys-erp-integration-config">
+        <set-variable value="processorderclose" doc:name="Set Variable (service)" doc:id="f75d53e2-2b38-4ac0-a50d-1bf85fef6375" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="1cde35f0-1fd6-41be-9a10-54796fd72f61" name="initialFlow" />
+    </flow>
+    <flow name="post:\purchasegr:traksys-erp-integration-config">
+        <set-variable value="purchasegr" doc:name="Set Variable (service)" doc:id="b2420c61-438a-4432-b931-39c40fcd6455" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="613da3e7-ce02-4e77-9755-2c4deaba12da" name="initialFlow" />
+    </flow>
+    <flow name="post:\materialmovementreversal:application\xml:traksys-erp-integration-config">
+        <set-variable value="materialmovementreversal" doc:name="Set Variable (service)" doc:id="a27e5c30-8b7d-4e91-b3b4-062dee3c598d" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="085dc53c-8cbb-416b-9548-ba03434dbc6d" name="initialFlow" />
+    </flow>
+    <flow name="post:\materialissuecc:application\xml:traksys-erp-integration-config" doc:id="80f65d7d-c9c8-4ea0-9bea-06714f1db06f" >
+		<set-variable value="materialissuecc" doc:name="Set Variable (service)" doc:id="bf96781b-8c2e-4f50-aaf5-741690613a81" variableName="service" />
+		<flow-ref doc:name="Copy_of_Flow Reference (initialFlow)" doc:id="1d7d671e-a5d7-4004-966c-1250b364f057" name="initialFlow" />
+	</flow>
+	<flow name="post:\materialattributes:application\xml:traksys-erp-integration-config" doc:id="d78e7da4-0944-4d23-862c-3766bf55307c" >
+		<set-variable value="materialattributes" doc:name="Set Variable (service)" doc:id="2cb727d3-091a-44ad-825e-b305f7e4cf75" variableName="service" />
+		<flow-ref doc:name="Flow Reference (initialFlow)" doc:id="270cd8ba-429c-483a-b6f8-3c0ff79859ce" name="initialFlow" />
+	</flow>
+	<flow name="post:\materialmove:application\xml:traksys-erp-integration-config" doc:id="e7e3710f-6796-4611-8c0c-327d9c447155" >
+		<set-variable value="materialmove" doc:name="Set Variable (service)" doc:id="b7bedd98-dd40-47e9-8eb6-0ddeab766d6c" variableName="service" />
+		<flow-ref doc:name="Flow Reference (initialFlow)" doc:id="5367f044-466f-4c27-9f0d-64577f235987" name="initialFlow" />
+	</flow>
+	<flow name="post:\profiseemdmmaterial:application\xml:traksys-erp-integration-config" doc:id="180c80cb-4859-4309-aa38-f1e8cd44e6e3" >
+		<set-variable value="profiseemdmmaterial" doc:name="Set Variable (service)" doc:id="f709acf8-acde-4dd6-bbfc-ea9e6b52b5ae" variableName="service" />
+		<flow-ref doc:name="Flow Reference (initialFlow)" doc:id="f1dbebc9-3d50-48bf-8a10-ac42bc6a4719" name="initialFlow" />
+	</flow>
+	<flow name="post:\profiseemdmbom:application\xml:traksys-erp-integration-config" doc:id="bba32ec0-4581-4bb8-99b1-973c8b742cb0" >
+		<set-variable value="profiseemdmbom" doc:name="Set Variable (service)" doc:id="a13d901d-4b48-4c04-ac9d-75ca1df0722c" variableName="service" />
+		<flow-ref doc:name="Flow Reference (initialFlow)" doc:id="e84423b2-b085-4261-9591-f21094485d93" name="initialFlow" />
+	</flow>	
+	<flow name="post:\globalstockdownload:application\xml:traksys-erp-integration-config" doc:id="5f3aad52-d1d7-478e-a591-a22977c04179" >
+		<set-variable value="globalstockdownload" doc:name="Set Variable (service)" doc:id="128d8ddf-6166-40bb-9aa2-ed9881a0c31f" variableName="service" />
+		<flow-ref doc:name="Flow Reference (initialFlow)" doc:id="2c6007a2-7d40-4505-91ed-758a7d9a956c" name="initialFlow" />
+	</flow>
+
+	<flow name="post:\unrestrictedstock:application\xml:traksys-erp-integration-config" doc:id="04c70e8f-7f6f-4d37-8825-f64d4bebf8e5" >
+		<set-variable value="unrestrictedstock" doc:name="Set Variable (service)" doc:id="1ad7a660-9652-449a-98aa-5b0302b1e1c1" variableName="service" />
+		<flow-ref doc:name="Flow Reference (initialFlow)" doc:id="67f82a21-5417-41d7-9b33-1e29ebef3dc8" name="initialFlow" />
+	</flow>
+        <flow name="post:\mazmaterialissue:application\xml:traksys-erp-integration-config" doc:id="d744ad1f-edf6-491d-a232-d903bbbd4e36" >
+        <set-variable value="mazmaterialissue" doc:name="Set Variable (service)" doc:id="28c8582b-5d8b-4762-b4a1-e272ec1917a8" variableName="service" />
+        <flow-ref doc:name="Flow Reference (initialFlow)" doc:id="2c064ea9-4ee6-49a1-b545-ac2108a55f3c" name="initialFlow" />
+    </flow> 
+</mule>

@@ -1,0 +1,198 @@
+#%RAML 1.0
+title: Interfaces between Traksys and G-ERP
+
+uses:
+  library: library/library.raml
+
+traits: 
+  hasHadersResponses:
+    headers:
+      Authorization:
+        example: Bearer <ACCESS_TOKEN_BY_PLANT_CODE>
+      plant_code:
+        example: Traksys plant code for example ua02
+    responses:
+      401:
+        body: 
+          application/xml:
+            example: |
+              <message>Failed Authentication</message>
+      404:
+        body: 
+          application/xml:
+            example: |
+              <message>Resource Not Found</message>
+      406:
+        body: 
+          application/xml:
+            example: |
+              <message>Plant code not found</message>
+      500:
+        body: 
+          application/xml:
+            example: |
+              <message>An error has occured</message>
+/processorder:
+  description: Process order Creation
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml: 
+    responses:
+      200:
+        body:
+          application/xml:
+/processorderclose:
+  description: Process order Close
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/materialissue:
+  description: Material GI
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:        
+    responses:
+      200:
+        body:
+          application/xml:  
+/materialreceipt:
+  description: Material GR
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/controlrecipedownload:
+  description: Control recipe SAZ
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/materialconfirmation:
+  description: Material Confirmation
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/purchasegr:
+  description: Purchase order GR
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/materialmovementreversal:
+    description: endpoint for material movement reversal
+    is: [hasHadersResponses]
+    post:
+      is: [hasHadersResponses]
+      body: 
+        application/xml:   
+      responses:
+        200:        
+          body:
+            application/xml:
+/materialissuecc:
+  description: Purchase order GR
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/materialattributes:
+  description: Purchase order GR
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/materialmove:
+  description: Purchase order GR
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/globalstockdownload:
+  description: Global Stock Download
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/unrestrictedstock:
+  description: Unrestricted Stock Download
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/profiseemdmmaterial:
+  description: Materials
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+/profiseemdmbom:
+  description: BOM Materials
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:
+
+
+
+/mazmaterialissue:
+  description: Insumos
+  post:
+    is: [hasHadersResponses]
+    body: 
+      application/xml:   
+    responses:
+      200:
+        body:
+          application/xml:

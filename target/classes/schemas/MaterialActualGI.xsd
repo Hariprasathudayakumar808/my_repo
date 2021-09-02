@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="MaterialActualGI">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="MESKey" type="xs:string" />
+        <xs:element name="PrOr" type="xs:string" />
+        <xs:element name="Material" type="xs:string" />
+        <xs:element name="Plant" type="xs:string" />
+        <xs:element name="UoM" type="xs:string" />
+        <xs:element name="Quantity" type="xs:decimal" />
+        <xs:element name="EventDate" type="xs:string" />
+        <xs:element name="EventTime" type="xs:string" />
+        <xs:element name="BatchNr" type="xs:string" />
+        <xs:element name="StorageLocation" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

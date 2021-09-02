@@ -1,0 +1,497 @@
+#MES Servers configuration
+  #Format mes_{PLANT_CODE}
+plant_code_property: "plant_code"
+
+password_key_store: "![UOksoDX7jQGwA4qJEYMLlg==]"
+#password_key_store: "![9bZ/zOuP+fE11T5cJn6pnA==]"
+password_key: "![UOksoDX7jQGwA4qJEYMLlg==]"
+password_trust_store: "![hMVvrZyCcvGlPgWVH8LrhA==]"
+encryptionKey: "DummyKey"
+keyStoreFile: 'appkeystoreProd.jks'
+
+smtp: 
+  host: "anheuserbuschinbev.mail.protection.outlook.com"
+  port: "25"
+  password: "![JxBw8MiSAYHtVVqbiy1FUA==]"
+  timeout: "300000"
+  reconn: 
+    attempts: "5"
+    freq: "5000"
+  email:
+    from: "globalmulesoftsupport@AB-inbev.com"
+    #to: "globalmulesoftsupport@AB-inbev.com"
+    to: "DL_Global_MES_Integration@AB-inbev.com"
+
+#Guarulhos
+mes_br35: 
+  connectionTimeout: "180000"
+  domain: "mesabi.ambev.com.br"
+  basePath: "/TS/api/ABI/Custom/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![By9PzCtwRsgSVOZ7My9OrXEjx+NDCzCleiJA8S2vMxg=]"
+  target_erp: "saz" 
+  services:
+    controlrecipedownload: "ERP/Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "ERP/Recipe/PostControlRecipe" 
+    materialmaster: "ERP/MatM/PostMaterialDefinition" 
+    materialbom: "ERP/MatM/PostMaterialBOM"
+    stockbatch: "ERP/RawM/PostRawMaterial"
+    productionscheduling: "Schedule/PostSchedule"        
+
+mes_1sa: 
+  connectionTimeout: "180000"
+  domain: "albms013a.alrode.beerdivision.mansys"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![e6de4fhc8sKfHrlARy1PtQ==]"
+  target_erp: "afr" 
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "Recipe/PostControlRecipe"
+ 
+mes_1sm: 
+  connectionTimeout: "180000"
+  domain: "ibyms013a.ibhayim.beerdivision.mansys"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![e6de4fhc8sKfHrlARy1PtQ==]"
+  target_erp: "afr" 
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "Recipe/PostControlRecipe"
+
+mes_1sb: 
+  connectionTimeout: "180000"
+  domain: "chams013a.chamdor.beerdivision.mansys"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![e6de4fhc8sKfHrlARy1PtQ==]"
+  target_erp: "afr" 
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "Recipe/PostControlRecipe"
+
+mes_1sd: 
+  connectionTimeout: "180000"
+  domain: "rosss013a.rosslyn.beerdivision.mansys"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![e6de4fhc8sKfHrlARy1PtQ==]"
+  target_erp: "afr" 
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "Recipe/PostControlRecipe"
+    
+mes_1sh: 
+  connectionTimeout: "180000"
+  domain: "pross013a.natal.beerdivision.mansys"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![e6de4fhc8sKfHrlARy1PtQ==]"
+  target_erp: "afr" 
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "Recipe/PostControlRecipe"
+    
+mes_1se: 
+  connectionTimeout: "180000"
+  domain: "polos013a.polokwane.beerdivision.mansys"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![e6de4fhc8sKfHrlARy1PtQ==]"
+  target_erp: "afr" 
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "Recipe/PostControlRecipe"
+    
+mes_1sj: 
+  connectionTimeout: "180000"
+  domain: "newss013a.newlands.beerdivision.mansys"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![e6de4fhc8sKfHrlARy1PtQ==]"
+  target_erp: "afr" 
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    getcontrolrecipedownload: "Recipe/PostControlRecipe"
+
+mes_pc19: 
+  connectionTimeout: "180000"
+  domain: "yzmes05pv.otmaz.local"
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]" 
+  mule_auth_token: "![e6de4fhc8sJCLjGPWnejtg==]" 
+  target_erp: "maz"
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    purchasedownload: "PuOr/PostPurchaseOrder"
+
+mes_pc29: 
+  connectionTimeout: "180000"
+  domain: "xzmes05pv.otmaz.local"  
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]" 
+  mule_auth_token: "![e6de4fhc8sJCLjGPWnejtg==]" 
+  target_erp: "maz"
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    purchasedownload: "PuOr/PostPurchaseOrder"
+
+mes_ua02: 
+  connectionTimeout: "180000"
+  domain: "traksys-khr.ab-inbev.com" 
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![saAnvhtDmWw+ST5mVVvRj52l9IRMfEnm]"
+  target_erp: "eur"
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe"
+    purchasedownload: "PuOr/PostPurchaseOrder"
+
+mes_ua03: 
+  connectionTimeout: "180000"
+  domain: "traksys-nik.ab-inbev.com" 
+  basePath: "/TS/api/ABI/Custom/ERP/"
+  port: "443"
+  mes_auth_token: "![PrUZdWSyo4T8rU0/Mg5omg==]"
+  mule_auth_token: "![saAnvhtDmWw+ST5mVVvRj52l9IRMfEnm]"
+  target_erp: "eur"
+  services:
+    controlrecipedownload: "Recipe/PostControlRecipe" 
+    purchasedownload: "PuOr/PostPurchaseOrder"
+
+paths: 
+  processorder:
+    from: "mes"
+    to: "erp"
+    transform_file: "ProcessOrder"
+    transform_response_file: "ProcessOrderResponse"
+    sap_function: "ZXX_CREATE_PO_CHG_RES_MES_SAP"
+  controlrecipedownload:
+    from: "mes"
+    to: "erp"
+    transform_file: "ControlRecipeDownloadEur"
+    transform_response_file: "ControlRecipeDownloadEurResponse"
+  getcontrolrecipedownload:
+    from: "mes"
+    to: "erp"
+    transform_file: "GetControlRecipeDownload"
+    transform_response_file: "ControlRecipeDownloadSazResponse"
+  materialreceipt:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialReceipt"
+    transform_response_file: "MaterialReceiptResponse"
+    sap_function: "ZBR_RFC_TRAKSYS_GOODS_RECEIPT"
+  materialissue:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialIssue"
+    transform_response_file: "MaterialIssueResponse"
+    sap_function: "ZBR_RFC_TRAKSYS_GOODS_ISSUE"
+  materialconfirmation:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialConfirmation"
+    transform_response_file: "MaterialConfirmationResponse"
+    sap_function: "ZBR_RFC_TRAKSYS_CONFIRMATION"
+  processorderclose:
+    from: "mes"
+    to: "erp"
+    transform_file: "ProcessOrderClose"
+    transform_response_file: "ProcessOrderCloseResponse"
+    sap_function: "ZBR_RFC_TRAKSYS_ORDERCLOSE"
+  purchasegr:
+    from: "mes"
+    to: "erp"
+    transform_file: "PurchaseGREur"
+    transform_response_file: "PurchaseGREurResponse"
+    sap_function: "MULE_TRSUA"
+  purchasedownload:
+    from: "erp"
+    to: "mes"
+    transform_file: "PurchaseDownloadEur"
+    transform_response_file: "PurchaseDownloadEurResponse"
+    sap_function: "MES_MULESOFT_PR122"
+  materialmovementreversal:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialMovementReversal"
+    transform_response_file: "MaterialMovementReversalResponse"
+    sap_function: "ZXX_SAPERP_PO_GM_CONF_REV_RFC"
+  materialattributes:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialAttribute"
+    transform_response_file: "MaterialAttributeResponse"
+    sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+  materialissuecc:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialIssueCC"
+    transform_response_file: "MaterialIssueCCResponse"
+    sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+  materialmove:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialMoveAfr"
+    transform_response_file: "MaterialMoveAfrResponse"
+    sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+  profiseemdmmaterial:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialSaz"
+    transform_response_file: "MaterialSazResponse"
+    sap_function: "ZBR_RFC_TRAKSYS_MATERIAL"
+  profiseemdmbom:
+    from: "mes"
+    to: "erp"
+    transform_file: "MaterialBomSaz"
+    transform_response_file: "MaterialBomSazResponse"
+    sap_function: "ZBR_RFC_TRAKSYS_BOM"
+  globalstockdownload: 
+    from: "mes"
+    to: "erp"
+    transform_file: "GlobalStockBatch"
+    transform_response_file: "GlobalStockBatchResponse"
+    sap_function: "ZBR_RFC_TRAKSYS_STOCKBATCHMAT"
+  unrestrictedstock:
+    from: "mes"
+    to: "erp"
+    transform_file: "UnrestrictedStock"
+    transform_response_file: "UnrestrictedStockResponse"
+    sap_function: "ZXX_TRKSAP_GM_UD_RFC"
+
+erp:
+  saz:
+    server: "sapeccpinst1.la.interbrew.net"
+    username: "SRV_BITBRP"
+    password: "![Dsj0+E37tJh3hLTmW09sMw==]"
+    system_number: "48"
+    client_id: "100"   
+    system_id: "BRP"
+    message_server_port: "3648"
+    message_server_group_name: "DEFAULT"
+    mule_auth_token: "auth_token"
+    language: "PT"
+    reconnection_frequency_ms: "3000"
+    reconnection_attempts: "3"
+    services:
+      processorder:
+        sap_function: "ZBR_RFC_TRAKSYS_CREATEORDPRO"
+        transform_file: "ProcessOrderSaz"
+        transform_response_file: "ProcessOrderSazResponse"
+        additional_flow: "controlRecipeProcessSazFlow"
+        read_payload: "true"
+        target_service: "convplorder"
+        fied_to_be_validated: "PlannedOrderNr"
+      convplorder:
+        transform_file: "ConvPlOrder"
+        transform_response_file: "ConvPlOrderResponse"
+        sap_function: "ZBR_RFC_TRAKSYS_CONVPLORD"
+      materialmaster:
+        transform_file: "MaterialMaster"
+        transform_response_file: "MaterialMasterResponse"
+        sap_function: "ZBR_RFC_TRAKSYS_MATERIAL"
+      materialbom:
+        transform_file: "MaterialBom"
+        transform_response_file: "MaterialBomResponse"
+        sap_function: "ZBR_RFC_TRAKSYS_BOM"
+      controlrecipedownload:
+        sap_function: "ZBR_RFC_TRAKSYS_CONTROLRECIPE"
+        transform_file: "ControlRecipeDownloadSaz"
+        transform_response_file: "ControlRecipeDownloadSazResponse"        
+      getcontrolrecipedownload:
+        sap_function: "ZBR_RFC_TRAKSYS_CONTROLRECIPE"
+        transform_file: "GetControlRecipeDownload"
+        transform_response_file: "ControlRecipeDownloadSazResponse"    
+      productionscheduling:
+        sap_function: "ZBR_RFC_TRAKSYS_PLANNEDORDER"
+        transform_file: "ProductionScheduling"
+        transform_response_file: "ProductionSchedulingResponse"
+      materialmovementreversal:
+        sap_function: "ZBR_RFC_TRAKSYS_REVERSAL"
+        transform_file: "MaterialMovementReversalSaz"
+        transform_response_file: "MaterialMovementReversalSazResponse"      
+      stockbatch:
+        sap_function: "ZBR_RFC_TRAKSYS_STOCKBATCHMAT"
+        transform_file: "StockBatch"
+        transform_response_file: "StockBatchResponse"
+      profiseemdmmaterial:
+        sap_function: "ZBR_RFC_TRAKSYS_MATERIAL"
+        transform_file: "MaterialSaz"
+        transform_response_file: "MaterialSazResponse"
+        error: "true"
+      profiseemdmbom:
+        sap_function: "ZBR_RFC_TRAKSYS_BOM"
+        transform_file: "MaterialBomSaz"
+        transform_response_file: "MaterialBomSazResponse" 
+        error: "true"
+
+
+        
+    
+  afr:
+    server: "sabdb32.beerdivision.africa.gcn.local"
+    username: "SVCMULEBATCH"
+    password: "![JxBw8MiSAYEuF0BUGQYc5A==]"
+    system_number: "00"
+    client_id: "500"
+    system_id: "BP1"
+    message_server_port: "3600"
+    message_server_group_name: "SPACE"
+    mule_auth_token: "![w+0sm6r5b9CrKY/sOdFapw==]"
+    language: "EN"
+    reconnection_frequency_ms: "3000"
+    reconnection_attempts: "3"    
+    services:
+      processorderclose:
+        sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+        transform_file: "ProcessOrderCloseAfr"
+        transform_response_file: "ProcessOrderCloseAfrResponse"
+        execute_commit: "true"
+      materialissue:
+        sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+        transform_file: "MaterialIssueAfr"
+        transform_response_file: "MaterialIssueAfrResponse"
+      materialreceipt:
+        sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+        transform_file: "MaterialReceiptAfr"
+        transform_response_file: "MaterialReceiptAfrResponse" 
+      processorder:
+        sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+        transform_file: "ProcessOrderAfr"
+        transform_response_file: "ProcessOrderAfrResponse"
+        execute_commit: "true"
+      controlrecipedownload:
+        transform_file: "ControlRecipeDownloadAfr"
+        program_id: "PP_CONNECT_TRAKSYS2"
+        targeted_function: "CONTROL_RECIPE_DOWNLOAD"
+        gateway_service: "sapgw00"
+        connection_count: "1"
+        operation_timeout: "60000" 
+      materialmovementreversal:
+        sap_function: "BAPI_PROCESS_MESSAGE_CREATEMLT"
+        transform_file: "MaterialMovementReversalAfr"
+        transform_response_file: "MaterialMovementReversalAfrResponse"
+
+  maz:
+    server: "weccpasc.modelo.gmodelo.com.mx"
+    username: "HECC065C"
+    password: "![x/4q+41KxNMSNAEa77Ag8g==]"
+    system_number: "00"
+    client_id: "400"   
+    system_id: "PR0"
+    message_server_port: "3620"
+    message_server_group_name: "MES_GROUP"
+    mule_auth_token: "auth_token"
+    language: "ES"
+    services:
+      processorder:
+        sap_function: "ZPAIMF_MES_CREATE_PO"
+        transform_file: "ProcessOrderMaz"
+        transform_response_file: "ProcessOrderMazResponse"
+      processorderclose:
+        sap_function: "ZPAIMF_CLOSE_PRO"
+        transform_file: "ProcessOrderCloseMaz"
+        transform_response_file: "ProcessOrderCloseMazResponse"
+      controlrecipedownload:
+        sap_function: "ZPAIMF_DOWNLOAD_CR"
+        transform_file: "ControlRecipeDownloadMaz"
+        transform_response_file: "ControlRecipeDownloadMazResponse"        
+      materialissue:
+        sap_function: "ZPAIMF_GOOD_ISSUE_PRO"
+        transform_file: "MaterialIssueMaz"
+        transform_response_file: "MaterialIssueMazResponse"
+      materialreceipt:
+        sap_function: "ZPAIMF_GOOD_RECEIPT_PRO"
+        transform_file: "MaterialReceiptMaz"
+        transform_response_file: "MaterialReceiptMazResponse"
+      materialconfirmation:
+        transform_file: "MaterialConfirmationMaz"
+        transform_response_file: "MaterialConfirmationMazResponse"
+        sap_function: "ZPAIMF_CONFIRMATION_PRO"
+      controlrecipecheck:
+        transform_file: "ControlRecipeCheckMaz"
+        transform_response_file: "ControlRecipeCheckMazResponse"
+        sap_function: "ZPAIMF_DOWNLOAD_CR"   
+
+  eur:
+    server: "saperpsc.we.interbrew.net"
+    username: "TRAKSERPCPIC"
+    password: "![rC8irssH7/PbdEtWNwUlag==]"
+    system_number: "84"
+    client_id: "100"
+    system_id: "ERP"
+    message_server_port: "3679"
+    message_server_group_name: "SPACE"
+    mule_auth_token: "![saAnvhtDmWw+ST5mVVvRj52l9IRMfEnm]"
+    language: "EN"
+    reconnection_frequency_ms: "3000"
+    reconnection_attempts: "3"    
+    services:
+      controlrecipedownload:
+        transform_file: "ControlRecipeDownloadEur"
+        program_id: "MES_MF21"
+        targeted_function: "CONTROL_RECIPE_DOWNLOAD"
+        gateway_service: "3379"
+        connection_count: "1"
+        operation_timeout: "60000" 
+      processorderclose:
+        sap_function: "ZXX_SAPERP_MF22C_CR_STS_IN_MU"
+        transform_file: "ProcessOrderCloseEur"
+        transform_response_file: "ProcessOrderCloseEurResponse"
+      materialissue:
+        transform_file: "MaterialIssueEur"
+        transform_response_file: "MaterialIssueEurResponse"
+        sap_function: "ZXX_SAPERP_MF22A_PO_GI_IN_MU"
+      materialconfirmation:
+        transform_file: "MaterialConfirmationEur"
+        transform_response_file: "MaterialConfirmationEurResponse"
+        sap_function: "ZXX_SAPERP_MF12_PO_CONF_IN_MU"      
+      purchasegr:
+        transform_file: "PurchaseGREur"
+        transform_response_file: "PurchaseGREurResponse"
+        send_idoc: "true"
+        sap_function: "TRAKSYS"
+        receiving_partner: "ERP100"     
+        receiving_port: "SAPERP"        
+      purchasedownload:
+        transform_file: "PurchaseDownloadEur"
+        program_id: "MES_MULESOFT_PR122"
+        targeted_function: "MES_MULESOFT_PR122"
+        gateway_service: "3379"   
+        connection_count: "1"
+        operation_timeout: "60000" 
+      materialreceipt:
+        sap_function: "ZXX_SAPERP_MF22B_PO_GR_IN_MU"
+        transform_file: "MaterialReceiptEur"
+        transform_response_file: "MaterialReceiptEurResponse"
+      materialmove:
+        sap_function: "ZXX_TRKSAP_GM_SLOC_TO_SLOC"
+        transform_file: "MaterialMoveEur"
+        transform_response_file: "MaterialMoveEurResponse"    
+            
+scheduler:
+  saz:
+    materialmaster: br35
+    materialbom: br35 
+    stockbatch:  
+      areas: "br35"
+      materials: 
+        br35: 50399552,40001356,40008949,36838,64094,40001218,40001354,40003450,50001608,50001616,50007526,50007548,50007747,50007749,50007757,50007758,50008333,50009578,50009610,50009634,50009700,50009729,50010369,50010503,50010522,50010532,50041482,50041491,50141579,50236907,50341420,50350638,50390768,50426733
+    productionscheduling: 
+      areas: "br35"
+      materials: 
+        br35: 36543.0001,36544.0001,36569.0001,38547.0001,38547.0002,38547.0003,38551.0001,38553.0001,38554.0001,38631.0001,38631.0002,58597.0001,58597.0002,58618.0001,71013.0001,71014.0001,71030.0001,77850.0001,77955.0001,77956.0001,50008601.0001,50008601.0002,50013072.0001,50013072.0002,50392039.0001,50392039.0002,50438753.0001,50438753.0002,50468408.0001,38698.0001,38699.0001,38703.0001,38706.0001,38711.0001,38712.0001,38713.0005,38713.0006,38715.0005,38715.0006,38752.0001,38777.0001,38790.0001,38975.0001,38992.0001,38993.0001,70253.0001,70255.0001,70256.0001,77686.0001,77905.0001

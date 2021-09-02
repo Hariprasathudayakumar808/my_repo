@@ -1,0 +1,20 @@
+#%RAML 1.0 Library
+types:  
+  MaterialMovementReversal:
+    properties:
+      TransactionId: string
+      ProcessMessageNo: string
+      Plant: string
+      PostingDate: date-only
+  MMRResponse:
+    properties:
+      MaterialMovementReversal:
+        properties:
+          TransactionId: string
+          ProcessMessageNo: string
+      message:
+        properties:          
+          MsgStatusCode: string
+          MsgClass: string
+          MsgNumber: string
+          MsgDescription: date-only

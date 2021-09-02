@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+    xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+    xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+
+    <flow name="purchaseDownloadEurFlow" doc:id="ddb3ddd3-2241-49ea-a987-3286014c20dd" initialState="started">
+        <sap:document-source doc:name="Document source" doc:id="6a901d6c-de8f-4c23-97cd-99bacfaecf62" config-ref="SAP_Inbound_EUR" gatewayHost="${erp.eur.server}" gatewayService="${erp.eur.services.purchasedownload.gateway_service}" programID="${erp.eur.services.purchasedownload.program_id}" connectionCount="${erp.eur.services.purchasedownload.connection_count}" operationTimeout="${erp.eur.services.purchasedownload.operation_timeout}"/>
+		<flow-ref doc:name="Flow Reference (purchaseDownloadDefault-EurFlow)" doc:id="14616987-e27f-409b-8d51-6e67328e23bf" name="purchaseDownloadDefault-EurFlow"/>
+    
+
+</flow>
+	<flow name="purchaseDownloadApacFlow" doc:id="5eaffc52-f13c-4cdd-a42c-cbc71f16f183" >
+		<sap:document-source operationTimeout="${erp.apac.services.purchasedownload.operation_timeout}" doc:name="Document source" doc:id="46caf8aa-9fe8-4bfa-9766-04137bcb27d4" config-ref="SAP_Inbound_APAC" gatewayHost="${erp.apac.server}" gatewayService="${erp.apac.services.purchasedownload.gateway_service}" programID="${erp.apac.services.purchasedownload.program_id}" connectionCount="${erp.apac.services.purchasedownload.connection_count}"/>
+		<flow-ref doc:name="Flow Reference (purchaseDownloadDefault-ApacFlow)" doc:id="754769a8-624f-4e22-82c2-ee23e33bf74f" name="purchaseDownloadDefault-ApacFlow" />
+	</flow>
+	<sub-flow name="executePurchaseEurProcess" doc:id="6d550082-fa72-4567-9e2d-30a39fa18276" >
+		<set-variable value="#[output application/java
+
+---
+(vars.rootMessage.payload.ORDERS05.IDOC.*E1EDP01 filter(value) -&gt; value.WERKS == payload)]" doc:name="Set E1EDP01 Structure" doc:id="9c4b1ff9-4944-47bb-957d-9143634e9e5e" variableName="e1edp01" />
+		<set-variable value="#[%dw 2.0
+output application/xml
+---
+{
+	ORDERS05: {
+		IDOC: {
+		EDI_DC40: vars.rootMessage.payload.ORDERS05.IDOC.*EDI_DC40,
+		E1EDK01: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDK01,
+		E1EDK14: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDK14,
+		E1EDK03: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDK03,
+		E1EDKA1: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDKA1,
+		E1EDK02: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDK02,
+		E1EDK18: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDK18,
+		E1EDK35: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDK35,
+		E1EDKT1: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDKT1,
+		E1EDP01: vars.e1edp01,
+		E1EDS01: vars.rootMessage.payload.ORDERS05.IDOC.*E1EDS01,
+		}
+	}
+}]" doc:name="Set Structure" doc:id="6a44588e-5d16-4128-ae8b-3b556ff7cb11" variableName="structure" />
+		<set-variable value="purchasedownload" doc:name="Set service from properties (service)" doc:id="f79bb083-ecc0-4626-89b8-b513443e156e" variableName="service" />
+		<set-variable value="#[output application/java
+
+---
+payload]" doc:name="Set Variable (plantCode)" doc:id="8c3e1a3c-cd6e-45d8-807d-09692aefb118" variableName="plantCode" />
+        <set-variable value="#['mes_' ++ (lower(vars.plantCode) default &quot;&quot;)]" doc:name="Mes Properties Name (mesPropName)" doc:id="85a51dcb-ff53-4111-9c7a-0cd37d169134" variableName="mesPropName" />
+        <validation:is-true doc:name="check if exist plant code in properties" doc:id="d2e02e57-27be-49ce-a859-5548cd15274c" expression="#[not isEmpty(p((vars.mesPropName default '') ++ '.domain'))]" message='#["Plant code not found: " ++ payload]'/>
+        <set-variable value='#["erp." ++ p((vars.mesPropName as String) ++ ".target_erp")]' doc:name="Target ERP Value (targetErpPropertyValue)" doc:id="5c22f524-f677-42f4-93a1-b049240859c9" variableName="targetErpPropertyValue" />
+		<set-variable value='#[vars.targetErpPropertyValue ++ ".services." ++ (vars.service default "")]' doc:name="Target ERP Service Property (targetErpServiceProperty)" doc:id="8c7210b8-707f-453f-9d26-2e62be8a7258" variableName="targetErpServiceProperty" />
+		<set-variable value='#[if(not isEmpty(p(vars.targetErpServiceProperty default "" ++ ".transform_file"))) p(vars.targetErpServiceProperty default "" ++ ".transform_file" )++ ".dwl" else vars.transformFileName]' doc:name="Overrides transform file name (transformFileName)" doc:id="4f56d657-798c-4266-84f8-373dd9395e5f" variableName="transformFileName" />
+		<set-payload value="#[vars.structure]" doc:name="Override payload to structure" doc:id="9b984823-7d63-48c8-9d6f-96a34130de0b" />
+		<flow-ref doc:name="exec ErpToMes" doc:id="1d304927-9f8b-4dd9-9560-2ecfda54138b" name="erpToMes" />
+	</sub-flow>
+	<sub-flow name="purchaseDownloadDefault-EurFlow" doc:id="bd2b94bf-edc8-48c7-bbf6-2d2b8589d5c9" >
+		<logger level="DEBUG" doc:name="SAP Function" doc:id="9cdd1b01-b009-4c72-be40-745da015c7b3" message="Document Source Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Get sap payload from Document source  Purchase order download#[payload]" category="com.abi.traksys.erp.integration.logging.purchase.order.eur.from.sap" />
+		<ee:transform doc:name="Get PLANTS" doc:id="4f6c54dd-a93e-4e14-bbe7-fbd2a606139e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="content" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    PLANTS:(payload.ORDERS05.IDOC.*E1EDP01 map(value, index) -> (value.WERKS))
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Unique PLANTS" doc:id="0dde112b-74a6-4bbd-b202-4431d2632bbb">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="UNIQUE"><![CDATA[%dw 2.0
+output application/java
+---
+{
+PLANTS: vars.content.PLANTS distinctBy (value) -> { "PLANTS" : value }
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Plants" doc:id="8c8165ff-32ae-4351-88f4-5ed59966ccd3" message="Plants from Payload  Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Plants in the array #[vars.UNIQUE.PLANTS]"/>
+		<validation:is-not-null doc:name="Verify Plants " doc:id="7802c7d6-ab87-4004-a148-d961c1c62e26" value="#[vars.UNIQUE.PLANTS]" message="There are no Plants in the array. Missing E1EDP01.WERKS in the payload "/>
+		<foreach doc:name="For Each" doc:id="b64dc6ab-86a5-4c70-aac9-ff74628210c9" collection="#[vars.UNIQUE.PLANTS]">
+			<try doc:name="Try" doc:id="47bc423c-d907-4345-bd69-eaccb7eec831" >
+                <flow-ref doc:name="Flow Reference (executePurchaseEurProcess)" doc:id="624dfd80-f924-49d7-ae4e-10ed4e9a97d6" name="executePurchaseEurProcess" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="41d69f64-b659-437c-9201-00395bac1e1c" >
+						<logger level="INFO" doc:name="MES Request Error Logger" doc:id="2a07f16b-9ef1-4dbc-88f7-968c839ba10a" message="MES Request Error Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Message: #[error.description]"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+	</sub-flow>
+	<sub-flow name="executePurchaseApacProcess" doc:id="74598c98-5cca-4839-a0e2-375d18f1bb9d">
+		<set-variable value="#[output application/java&#10;&#10;---&#10;(vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDP01 filter(value) -&gt; value.WERKS == payload)]" doc:name="Set E1EDP01 Structure" doc:id="0c377f1f-8fb3-4b98-b8d9-685074d5c58f" variableName="e1edp01" />
+		<set-variable value="#[%dw 2.0&#10;output application/xml&#10;---&#10;{&#10;	ZORDERS05_MULE: {&#10;		IDOC: {&#10;		EDI_DC40: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*EDI_DC40,&#10;		E1EDK01: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDK01,&#10;		E1EDK14: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDK14,&#10;		E1EDK03: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDK03,&#10;		E1EDKA1: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDKA1,&#10;		E1EDK02: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDK02,&#10;		E1EDK18: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDK18,&#10;		E1EDK35: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDK35,&#10;		E1EDKT1: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDKT1,&#10;		E1EDP01: vars.e1edp01,&#10;		E1EDS01: vars.rootMessage.payload.ZORDERS05_MULE.IDOC.*E1EDS01,&#10;		}&#10;	}&#10;}]" doc:name="Set Structure" doc:id="68707a27-c2bf-4893-84f1-889de98ff088" variableName="structure" />
+		<set-variable value="purchasedownload" doc:name="Set service from properties (service)" doc:id="1cb64a3c-57f3-41cb-84ee-56895690c193" variableName="service" />
+		<set-variable value="#[output application/java&#10;&#10;---&#10;payload]" doc:name="Set Variable (plantCode)" doc:id="fcc5a6da-075b-4471-8c6f-aa4b2740c299" variableName="plantCode" />
+		<set-variable value="#['mes_' ++ (lower(vars.plantCode) default &quot;&quot;)]" doc:name="Mes Properties Name (mesPropName)" doc:id="1a92ec8b-bc1d-43be-8718-0e533015c150" variableName="mesPropName" />
+		<validation:is-true doc:name="check if exist plant code in properties" doc:id="04a9e2fc-9eaf-4964-ad08-31a549324dcd" expression="#[not isEmpty(p((vars.mesPropName default '') ++ '.domain'))]" message='#["Plant code not found: " ++ payload]' />
+		<set-variable value='#["erp." ++ p((vars.mesPropName as String) ++ ".target_erp")]' doc:name="Target ERP Value (targetErpPropertyValue)" doc:id="e171429c-9314-42bf-953c-d01f1f8dd03f" variableName="targetErpPropertyValue" />
+		<set-variable value='#[vars.targetErpPropertyValue ++ ".services." ++ (vars.service default "")]' doc:name="Target ERP Service Property (targetErpServiceProperty)" doc:id="ec54c47e-a16d-4b67-aa32-15317b7b8888" variableName="targetErpServiceProperty" />
+		<set-variable value='#[if(not isEmpty(p(vars.targetErpServiceProperty default "" ++ ".transform_file"))) p(vars.targetErpServiceProperty default "" ++ ".transform_file" )++ ".dwl" else vars.transformFileName]' doc:name="Overrides transform file name (transformFileName)" doc:id="bda9e74f-e7fd-4270-831b-91c1f6d74840" variableName="transformFileName" />
+		<set-payload value="#[vars.structure]" doc:name="Override payload to structure" doc:id="e2605bb0-3792-411b-a63d-d572bf063473" />
+		<flow-ref doc:name="exec ErpToMes" doc:id="95c6b6db-7b58-47b7-a475-d33ebb37e924" name="erpToMes" />
+	</sub-flow>
+	<sub-flow name="purchaseDownloadDefault-ApacFlow" doc:id="880587e8-28bc-4079-ac20-362d94c44958" >
+		<logger level="DEBUG" doc:name="SAP Function" doc:id="e6a9b3c8-d66c-40cd-b2ea-877907a57be8" message="Document Source Module Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Get sap payload from Document source  Purchase order download#[payload]" category="com.abi.traksys.erp.integration.logging.purchase.order.apac.from.sap" />
+		<ee:transform doc:name="Get PLANTS" doc:id="a671d3b4-a531-4562-b3e1-98ce29a87aa3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="content" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    PLANTS:(payload.ZORDERS05_MULE.IDOC.*E1EDP01 map(value, index) -> (value.WERKS))
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Unique PLANTS" doc:id="79c79a91-2d13-48fd-bdaa-9be88f69e63b" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="UNIQUE" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+PLANTS: vars.content.PLANTS distinctBy (value) -> { "PLANTS" : value }
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Plants" doc:id="190cd76d-41df-41a7-b9b4-2e049d5f244b" message="Plants from Payload  Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Plants in the array #[vars.UNIQUE.PLANTS]" />
+		<validation:is-not-null doc:name="Verify Plants" doc:id="0906a909-6f77-4889-8696-d70760322bc3" value="#[vars.UNIQUE.PLANTS]" message="There are no Plants in the array. Missing E1EDP01.WERKS in the payload " />
+		<foreach doc:name="For Each" doc:id="cbb255ea-0f0d-4b4f-9b3e-5e158a5fd8fc" collection="#[vars.UNIQUE.PLANTS]" >
+			<try doc:name="Try" doc:id="84e87747-87c9-485f-b72f-37126d93cfdf" >
+				<flow-ref doc:name="Flow Reference (executePurchaseProcess)" doc:id="14e1f1a6-a3ec-41b7-a06f-1cacfe9482d8" name="executePurchaseApacProcess" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="af1829cd-1136-4fa0-91a4-f5b613337b20" >
+						<logger level="INFO" doc:name="MES Request Error Logger" doc:id="ed1927d7-aa1c-447f-9bdc-679f34f2c090" message="MES Request Error Logger :: Flow Name: #[flow.name] &gt;&gt; Message ID: #[correlationId] &gt;&gt; Message: #[error.description]" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+	</sub-flow>
+
+
+</mule>

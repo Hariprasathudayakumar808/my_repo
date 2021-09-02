@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+    xmlns="http://www.mulesoft.org/schema/mule/core"
+    xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+     <http:listener-config name="traksys-erp-integration-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0"
+            port="58102" protocol="HTTPS" tlsContext="MesERPTLSConfiguration"/>
+    </http:listener-config>
+    <tls:context name="MesERPTLSConfiguration" doc:name="TLS Context" doc:id="899441c1-8f7f-4088-bbdf-ac007f685bb1" >
+        <tls:key-store type="jks" path="${keyStoreFile}" alias="traksyserpintegrationkey" keyPassword="${secure::password_key_store}" password="${secure::password_key}"/>
+    </tls:context>
+    <apikit:config name="traksys-erp-integration-config"
+        raml="traksys-erp-integration.raml" outboundHeadersMapName="outboundHeaders"
+        httpStatusVarName="httpStatus" />
+    <global-property doc:name="Global Property"
+        doc:id="f75dcf91-6e73-4d8d-9538-02757bab0cc2" name="env" value="dev" />
+    <configuration-properties doc:name="Configuration properties"
+        doc:id="29a2c111-b73d-43a3-a603-43a5a97b54c7" file="${env}-application-properties.yaml" />
+    <file:config name="Module_Config" doc:name="File Config"
+        doc:id="67c2e03e-d228-41bf-bde1-ff527de734c7">
+        <file:connection workingDir="${app.home}" />
+    </file:config>
+    <http:request-config name="Datadog_HTTP" doc:name="datadog http" doc:id="10a3bf72-5828-4b73-9534-ef8344921c7a" basePath="/v1/">
+        <http:request-connection protocol="HTTPS" host="http-intake.logs.datadoghq.com" />
+    </http:request-config>
+    <sap:inbound-config name="SAP_Inbound_EUR" doc:name="SAP Inbound" doc:id="c5d46d4a-9d2b-4115-b268-127b4bf2be55" >
+        <sap:simple-connection-provider-connection username='#[p("erp.eur.username")]' password='#[p("secure::erp.eur.password")]' systemNumber='#[p("erp.eur.system_number")]' client='#[p("erp.eur.client_id")]'>
+			<sap:message-server host='#[p("erp.eur.server")]' systemId='#[p("erp.eur.system_id")]' port='#[p("erp.eur.message_server_port")]' group='#[p("erp.eur.message_server_group_name")]' />
+		</sap:simple-connection-provider-connection>
+    </sap:inbound-config>
+    <sap:inbound-config name="SAP_Inbound_APAC" doc:name="SAP Inbound" doc:id="a6556ac6-91e1-4ad8-b4ee-7db54eb06aaf" >
+        <sap:simple-connection-provider-connection username='#[p("erp.apac.username")]' password='#[p("secure::erp.apac.password")]' systemNumber='#[p("erp.apac.system_number")]' client='#[p("erp.apac.client_id")]'>
+            <sap:message-server host='#[p("erp.apac.server")]' systemId='#[p("erp.apac.system_id")]' port='#[p("erp.apac.message_server_port")]' group='#[p("erp.apac.message_server_group_name")]' />
+        </sap:simple-connection-provider-connection>
+    </sap:inbound-config>
+     <sap:inbound-config name="SAP_Inbound_AFR" doc:name="SAP Inbound" doc:id="54c4bab4-29d2-48c2-93f3-13a7d3dbe061" >
+        <sap:simple-connection-provider-connection username='#[p("erp.afr.username")]' password='#[p("secure::erp.afr.password")]' systemNumber='#[p("erp.afr.system_number")]' client='#[p("erp.afr.client_id")]'>
+            <sap:message-server host='#[p("erp.afr.server")]' systemId='#[p("erp.afr.system_id")]' port='#[p("erp.afr.message_server_port")]' group='#[p("erp.afr.message_server_group_name")]' />
+        </sap:simple-connection-provider-connection>
+    </sap:inbound-config>
+    <sap:outbound-config name="SAP_Outbound_ConnectionInfo"
+        doc:name="SAP Outbound" doc:id="8ec9825a-ca4d-4ba3-a44e-64e09dd9b218">
+        <sap:simple-connection-provider-connection
+            username="#[vars.sapProperties.username]" systemNumber="#[vars.sapProperties.systemNumber]"
+            client="#[vars.sapProperties.clientId]" password="#[vars.sapProperties.password]" language="#[vars.sapProperties.language]" applicationServerHost="#[vars.sapProperties.server]">
+        </sap:simple-connection-provider-connection>
+    </sap:outbound-config>
+    <sap:outbound-config name="SAP_Outbound_ConnectionInfoMessageServer" doc:name="SAP Outbound" doc:id="fc3d6d81-19ef-4cfc-9fd4-5c68e6d99476" >
+        <sap:simple-connection-provider-connection
+            username="#[vars.sapProperties.username]" systemNumber="#[vars.sapProperties.systemNumber]"
+            client="#[vars.sapProperties.clientId]" password="#[vars.sapProperties.password]" language="#[vars.sapProperties.language]">
+			<sap:message-server host="#[vars.sapProperties.server]" systemId="#[vars.sapProperties.systemId]" port="#[vars.sapProperties.messageServerPort]" group="#[vars.sapProperties.messageServerGroupName]" />
+        </sap:simple-connection-provider-connection>
+    </sap:outbound-config>
+    <http:request-config name="MES_Http_Request_Configuration"
+        doc:name="HTTP Request configuration" doc:id="83c34441-768d-4725-a5d4-f381b7e1e8c6"
+        basePath="#[vars.mesProperties.basePath]" responseTimeout="#[vars.mesProperties.connectionTimeout]">
+     <http:request-connection protocol="HTTPS"
+            host="#[vars.mesProperties.domain]" port="#[vars.mesProperties.port]" tlsContext="MES_TLS_Context"/>
+    </http:request-config>
+    <tls:context name="MES_TLS_Context" doc:name="TLS Context" doc:id="b3ee5b40-2935-4f15-951c-898b54fc98b3" >
+        <tls:trust-store path="traksyserpintegration.ts" password="${secure::password_trust_store}" />
+    </tls:context>
+    <email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="ae6afa39-ef99-405e-9cd1-758a67b60107" >
+        <email:smtp-connection host="${smtp.host}" port="${smtp.port}" password="${secure::smtp.password}" connectionTimeout="${smtp.timeout}" readTimeout="${smtp.timeout}" writeTimeout="${smtp.timeout}" user="globalmulesoftsupport@AB-inbev.com">
+            <reconnection >
+                <reconnect frequency="${smtp.reconn.freq}" count="${smtp.reconn.attempts}" />
+            </reconnection>
+        </email:smtp-connection>
+    </email:smtp-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="b000a61f-12fc-42a1-aa3c-98f10071cab3" file="${env}-application-properties.yaml" key="LuxfactaKey" >
+        <secure-properties:encrypt algorithm="Blowfish" />  
+    </secure-properties:config>
+	<sap:inbound-config name="SAP_Inbound_NAZ" doc:name="SAP Inbound" doc:id="cb10ad7b-860b-446b-ab3f-049b358d868b" >
+		<sap:simple-connection-provider-connection username='#[p("erp.naz.username")]' password='#[p("secure::erp.naz.password")]' systemNumber='#[p("erp.naz.system_number")]' client='#[p("erp.naz.client_id")]' applicationServerHost='#[p("erp.naz.server")]' />
+	</sap:inbound-config>  
+    <configuration doc:name="Configuration" doc:id="3fedf851-9240-4a79-b3eb-d5b2d78fd7ef" defaultErrorHandler-ref="allErrorHandler" />
+</mule>
